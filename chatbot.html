@@ -3,23 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Web Chatbot</title>
+    <title>AI Chatbot - Interactive Assistant</title>
     <link rel="stylesheet" href="chatbot.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="chatbot-container">
         <div class="chatbot-header">
             <span class="chat-icon">
-                <!-- Chat bubble SVG icon -->
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 11.5C21 16.1944 16.9706 20 12 20C10.5272 20 9.13441 19.7362 7.90002 19.2672L3.5 20.5L4.73277 16.1C4.26377 14.8656 4 13.4728 4 12C4 7.30558 8.02944 3.5 13 3.5C17.9706 3.5 21 7.30558 21 11.5Z" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <!-- Enhanced chat bubble SVG icon -->
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 11.5C21 16.1944 16.9706 20 12 20C10.5272 20 9.13441 19.7362 7.90002 19.2672L3.5 20.5L4.73277 16.1C4.26377 14.8656 4 13.4728 4 12C4 7.30558 8.02944 3.5 13 3.5C17.9706 3.5 21 7.30558 21 11.5Z" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="9" cy="12" r="1" fill="#fff"/>
+                    <circle cx="15" cy="12" r="1" fill="#fff"/>
+                </svg>
             </span>
-            <span class="chatbot-title">AI Chatbot</span>
+            <span class="chatbot-title">AI Assistant</span>
         </div>
         <div id="chat-display" class="chat-display"></div>
         <div class="input-area">
-            <input type="text" id="user-input" placeholder="Type your message..." autocomplete="off" />
-            <button id="send-btn" aria-label="Send">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 20L21 12L3 4V10L17 12L3 14V20Z" fill="currentColor"/></svg>
+            <input type="text" id="user-input" placeholder="Type your message here..." autocomplete="off" />
+            <button id="send-btn" aria-label="Send message">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 20L21 12L3 4V10L17 12L3 14V20Z" fill="currentColor"/>
+                </svg>
             </button>
         </div>
     </div>
