@@ -7,9 +7,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const botSVG = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="8" width="16" height="10" rx="5" stroke="#fff" stroke-width="2"/><circle cx="9" cy="13" r="1.5" fill="#fff"/><circle cx="15" cy="13" r="1.5" fill="#fff"/><rect x="10.5" y="2" width="3" height="4" rx="1.5" stroke="#fff" stroke-width="2"/></svg>`;
 
     // Welcome message
-    setTimeout(() => {
-        appendMessage('Hello! I\'m your AI assistant. How can I help you today? 😊', 'bot');
-    }, 500);
+    // setTimeout(() => {
+    //     appendMessage('Hello! I\'m your AI assistant. How can I help you today? 😊', 'bot');
+    // }, 500);
 
     function appendMessage(content, sender) {
         const row = document.createElement('div');
@@ -60,12 +60,32 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function getBotResponse(userInput) {
-        // Always return the fixed response
-        return "Hello! How can I help you today?";
+    // Add a function to generate or retrieve a sessionId
+    function getSessionId() {
+      let sessionId = localStorage.getItem('chatbot_session_id');
+      if (!sessionId) {
+        sessionId = Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('chatbot_session_id', sessionId);
+      }
+      return sessionId;
     }
 
-    function sendMessage() {
+    // Replace the function that sends messages to OpenAI with a call to the backend
+    async function sendMessageToBackend(message) {
+      const sessionId = getSessionId();
+      const response = await fetch('http://localhost:3001/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message, sessionId })
+      });
+      if (!response.ok) {
+        throw new Error('Failed to get response from backend');
+      }
+      const data = await response.json();
+      return data.response;
+    }
+
+    async function sendMessage() {
         const text = userInput.value.trim();
         if (!text) return;
         
@@ -77,11 +97,15 @@ document.addEventListener('DOMContentLoaded', function() {
         showTypingIndicator();
         
         // Simulate bot thinking and responding
-        setTimeout(() => {
+        try {
+            const botResponse = await sendMessageToBackend(text);
             hideTypingIndicator();
-            const botResponse = getBotResponse(text);
             appendMessage(botResponse, 'bot');
-        }, 1000 + Math.random() * 1000); // Random delay between 1-2 seconds
+        } catch (error) {
+            hideTypingIndicator();
+            appendMessage('Sorry, I encountered an error. Please try again later.', 'bot');
+            console.error('Error sending message to backend:', error);
+        }
     }
 
     // Enhanced input handling
