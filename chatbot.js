@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Replace the function that sends messages to OpenAI with a call to the backend
     async function sendMessageToBackend(message) {
       const sessionId = getSessionId();
-      const response = await fetch('http://localhost:3001/chat', {
+      const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message, sessionId })
