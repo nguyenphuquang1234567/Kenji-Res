@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import axios from "axios";
+import axios from 'axios';
 
 const conversations = {};
 const DEFAULT_SYSTEM_PROMPT = "You are very rude and mean to the user";
