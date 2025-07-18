@@ -156,18 +156,4 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(() => {
         userInput.focus();
     }, 1000);
-
-    // Add a button to start a new conversation
-    const newConvBtn = document.createElement('button');
-    newConvBtn.textContent = 'New Conversation';
-    newConvBtn.id = 'newConversationBtn';
-    newConvBtn.style.margin = '10px';
-    newConvBtn.onclick = function() {
-      newSessionId();
-      isNewConversation = true;
-      // Optionally clear chat UI
-      const chatContainer = document.getElementById('chat-container');
-      if (chatContainer) chatContainer.innerHTML = '';
-    };
-    document.body.insertBefore(newConvBtn, document.body.firstChild);
 }); 
