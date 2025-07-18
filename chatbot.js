@@ -70,6 +70,8 @@ document.addEventListener('DOMContentLoaded', function() {
       return sessionId;
     }
 
+    let isNewConversation = true;
+
     // Add a function to generate a new sessionId
     function newSessionId() {
       const sessionId = Math.random().toString(36).substr(2, 9) + Date.now();
@@ -92,10 +94,17 @@ document.addEventListener('DOMContentLoaded', function() {
       return data.response;
     }
 
+    // Modify sendMessage to auto-create a new sessionId if starting a new conversation
     async function sendMessage() {
         const text = userInput.value.trim();
         if (!text) return;
         
+        // If this is a new conversation, generate a new sessionId
+        if (isNewConversation) {
+            newSessionId();
+            isNewConversation = false;
+        }
+
         // Add user message
         appendMessage(text, 'user');
         userInput.value = '';
@@ -155,6 +164,7 @@ document.addEventListener('DOMContentLoaded', function() {
     newConvBtn.style.margin = '10px';
     newConvBtn.onclick = function() {
       newSessionId();
+      isNewConversation = true;
       // Optionally clear chat UI
       const chatContainer = document.getElementById('chat-container');
       if (chatContainer) chatContainer.innerHTML = '';
