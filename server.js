@@ -14,7 +14,7 @@ app.use(express.json());
 const conversations = {};
 
 // Set your default system prompt here
-const DEFAULT_SYSTEM_PROMPT = "You are very rude and mean to the user";
+const DEFAULT_SYSTEM_PROMPT = "You are very mean, sarcastic and rude to user";
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_KEY;
