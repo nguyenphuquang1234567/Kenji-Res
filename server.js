@@ -40,7 +40,7 @@ app.post('/chat', async (req, res) => {
     const response = await axios.post(
       'https://api.openai.com/v1/chat/completions',
       {
-        model: 'gpt-4.1-mini',
+        model: 'gpt-4o-mini',
         messages: conversations[sessionId],
       },
       {
@@ -94,7 +94,7 @@ app.post('/api/chat', async (req, res) => {
     const response = await axios.post(
       'https://api.openai.com/v1/chat/completions',
       {
-        model: 'gpt-4.1-mini',
+        model: 'gpt-4o-mini',
         messages: conversations[sessionId],
       },
       {
