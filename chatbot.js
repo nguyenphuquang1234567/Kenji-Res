@@ -28,10 +28,22 @@ document.addEventListener('DOMContentLoaded', function() {
         row.appendChild(msgDiv);
         chatDisplay.appendChild(row);
         
-        // Smooth scroll to bottom
+        // Enhanced scroll animation
         setTimeout(() => {
-            chatDisplay.scrollTop = chatDisplay.scrollHeight;
-        }, 100);
+            chatDisplay.scrollTo({
+                top: chatDisplay.scrollHeight,
+                behavior: 'smooth'
+            });
+        }, 150);
+        
+        // Add subtle entrance animation
+        row.style.opacity = '0';
+        row.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            row.style.transition = 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
+            row.style.opacity = '1';
+            row.style.transform = 'translateY(0)';
+        }, 50);
     }
 
     function showTypingIndicator() {
@@ -127,22 +139,36 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Reset conversation function
     function resetConversation() {
-        // Clear the chat display
-        chatDisplay.innerHTML = '';
+        // Add enhanced visual feedback
+        resetBtn.style.transform = 'scale(0.85) rotate(180deg)';
+        resetBtn.style.transition = 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
         
-        // Generate a new session ID
-        newSessionId();
-        
-        // Reset the conversation state
-        isNewConversation = true;
-        
-        // Focus back on the input
-        userInput.focus();
-        
-        // Add a brief visual feedback
-        resetBtn.style.transform = 'scale(0.9)';
         setTimeout(() => {
-            resetBtn.style.transform = 'scale(1)';
+            // Clear the chat display with fade effect
+            const messages = chatDisplay.querySelectorAll('.msg-row');
+            messages.forEach((msg, index) => {
+                setTimeout(() => {
+                    msg.style.transition = 'all 0.3s ease';
+                    msg.style.opacity = '0';
+                    msg.style.transform = 'translateX(-20px)';
+                }, index * 50);
+            });
+            
+            setTimeout(() => {
+                chatDisplay.innerHTML = '';
+                
+                // Generate a new session ID
+                newSessionId();
+                
+                // Reset the conversation state
+                isNewConversation = true;
+                
+                // Focus back on the input
+                userInput.focus();
+                
+                // Reset button animation
+                resetBtn.style.transform = 'scale(1) rotate(0deg)';
+            }, messages.length * 50 + 300);
         }, 150);
     }
 
