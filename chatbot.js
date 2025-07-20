@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const chatDisplay = document.getElementById('chat-display');
     const userInput = document.getElementById('user-input');
     const sendBtn = document.getElementById('send-btn');
+    const resetBtn = document.getElementById('reset-btn');
 
     const userSVG = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="8" r="4" stroke="#fff" stroke-width="2"/><path d="M4 20c0-3.3137 3.134-6 7-6s7 2.6863 7 6" stroke="#fff" stroke-width="2"/></svg>`;
     const botSVG = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="8" width="16" height="10" rx="5" stroke="#fff" stroke-width="2"/><circle cx="9" cy="13" r="1.5" fill="#fff"/><circle cx="15" cy="13" r="1.5" fill="#fff"/><rect x="10.5" y="2" width="3" height="4" rx="1.5" stroke="#fff" stroke-width="2"/></svg>`;
@@ -124,8 +125,30 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Reset conversation function
+    function resetConversation() {
+        // Clear the chat display
+        chatDisplay.innerHTML = '';
+        
+        // Generate a new session ID
+        newSessionId();
+        
+        // Reset the conversation state
+        isNewConversation = true;
+        
+        // Focus back on the input
+        userInput.focus();
+        
+        // Add a brief visual feedback
+        resetBtn.style.transform = 'scale(0.9)';
+        setTimeout(() => {
+            resetBtn.style.transform = 'scale(1)';
+        }, 150);
+    }
+
     // Enhanced input handling
     sendBtn.addEventListener('click', sendMessage);
+    resetBtn.addEventListener('click', resetConversation);
     
     userInput.addEventListener('keydown', function(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -137,10 +160,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add focus effects
     userInput.addEventListener('focus', function() {
         sendBtn.style.transform = 'scale(1.05)';
+        resetBtn.style.transform = 'scale(1.05)';
     });
 
     userInput.addEventListener('blur', function() {
         sendBtn.style.transform = 'scale(1)';
+        resetBtn.style.transform = 'scale(1)';
     });
 
     // Add button click animation
@@ -149,6 +174,14 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     sendBtn.addEventListener('mouseup', function() {
+        this.style.transform = 'scale(1.05)';
+    });
+
+    resetBtn.addEventListener('mousedown', function() {
+        this.style.transform = 'scale(0.95)';
+    });
+
+    resetBtn.addEventListener('mouseup', function() {
         this.style.transform = 'scale(1.05)';
     });
 
