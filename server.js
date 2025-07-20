@@ -3,13 +3,18 @@ const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
 const { createClient } = require('@supabase/supabase-js');
+const path = require('path');
 
 const app = express();
 const port = 3001;
 
 app.use(cors());
 app.use(express.json());
+app.use(express.static(__dirname)); // Serves files from the project root
 
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 // In-memory conversation store: { sessionId: [ {role, content}, ... ] }
 const conversations = {};
