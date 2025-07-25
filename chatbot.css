@@ -78,7 +78,7 @@ body::after {
 }
 
 .chatbot-container {
-    width: 480px;
+    width: 640px;
     border-radius: 32px;
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(25px);
