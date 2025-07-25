@@ -65,10 +65,31 @@ document.addEventListener('DOMContentLoaded', () => {
         msgList.className = 'flex flex-col gap-3';
         messages.forEach(msg => {
           if (msg.role === 'system') return; // Skip system messages
+          // Tạo row cho mỗi message
+          const row = document.createElement('div');
+          row.className = `msg-row ${msg.role === 'user' ? 'user' : 'bot'}`;
+
+          // Avatar/icon
+          const icon = document.createElement('div');
+          icon.className = `msg-icon ${msg.role === 'user' ? '' : 'bot'}`;
+          icon.innerHTML = msg.role === 'user'
+            ? `<svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14c-2.5 0-4.5 1.5-4.5 3v1h9v-1c0-1.5-2-3-4.5-3z"/><circle cx="12" cy="10" r="2.5"/></svg>`
+            : `<svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor"><rect x="4" y="4" width="16" height="16" rx="8" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 15h8M9 9h6"/></svg>`;
+
+          // Bong bóng chat
           const div = document.createElement('div');
-          div.className = `message px-4 py-3 rounded-xl max-w-[90%] shadow text-sm ${msg.role === 'user' ? 'bg-blue-100 self-end text-right' : msg.role === 'assistant' ? 'bg-gray-100 self-start text-left' : 'bg-yellow-100 self-center text-center'}`;
-          div.innerHTML = `<span class="font-semibold">${msg.role}:</span> <span>${msg.content}</span>`;
-          msgList.appendChild(div);
+          div.className = `message ${msg.role === 'user' ? 'user' : 'bot'}`;
+          div.innerHTML = `<span>${msg.content}</span>`;
+
+          // Gắn vào row
+          if (msg.role === 'user') {
+            row.appendChild(div);
+            row.appendChild(icon);
+          } else {
+            row.appendChild(icon);
+            row.appendChild(div);
+          }
+          msgList.appendChild(row);
         });
         messagesContainer.appendChild(msgList);
       }
