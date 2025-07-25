@@ -24,7 +24,61 @@ module.exports = async (req, res) => {
     return;
   }
 
-  // Only allow POST requests
+  // --- New: Handle GET requests for dashboard ---
+  if (req.method === 'GET') {
+    const url = req.url || '';
+    // /api/conversations/:id/messages
+    const match = url.match(/\/conversations\/(.+)\/messages/);
+    if (url.startsWith('/conversations/') && match) {
+      const conversationId = match[1];
+      // Fetch messages for a conversation
+      const { data, error } = await supabase
+        .from('conversations')
+        .select('messages')
+        .eq('conversation_id', conversationId)
+        .single();
+      if (error) {
+        return res.status(500).json({ error: error.message });
+      }
+      return res.json({ messages: data ? data.messages : [] });
+    }
+    // /api/conversations
+    if (url.startsWith('/conversations')) {
+      // Fetch all conversations (id and timestamp)
+      const { data, error } = await supabase
+        .from('conversations')
+        .select('conversation_id, created_at')
+        .order('created_at', { ascending: false });
+      if (error) {
+        return res.status(500).json({ error: error.message });
+      }
+      return res.json({ conversations: data });
+    }
+    // Not found
+    return res.status(404).json({ error: 'Not found' });
+  }
+
+  // --- New: Handle DELETE requests for dashboard ---
+  if (req.method === 'DELETE') {
+    const url = req.url || '';
+    const match = url.match(/\/conversations\/(.+)$/);
+    if (url.startsWith('/conversations/') && match) {
+      const conversationId = match[1];
+      try {
+        const { error } = await supabase
+          .from('conversations')
+          .delete()
+          .eq('conversation_id', conversationId);
+        if (error) return res.status(500).json({ error: error.message });
+        return res.status(204).end();
+      } catch (err) {
+        return res.status(500).json({ error: 'Server error' });
+      }
+    }
+    return res.status(404).json({ error: 'Not found' });
+  }
+
+  // --- Existing POST chat handler ---
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }

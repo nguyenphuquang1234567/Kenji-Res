@@ -133,6 +133,52 @@ app.post('/api/chat', async (req, res) => {
   }
 });
 
+// --- API for dashboard: get all conversations ---
+app.get('/api/conversations', async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('conversations')
+      .select('conversation_id, created_at')
+      .order('created_at', { ascending: false });
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ conversations: data });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// --- API for dashboard: get messages for a conversation ---
+app.get('/api/conversations/:id/messages', async (req, res) => {
+  const conversationId = req.params.id;
+  try {
+    const { data, error } = await supabase
+      .from('conversations')
+      .select('messages')
+      .eq('conversation_id', conversationId)
+      .single();
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ messages: data ? data.messages : [] });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// --- API for dashboard: delete a conversation ---
+app.delete('/api/conversations/:id', async (req, res) => {
+  const conversationId = req.params.id;
+  try {
+    const { error, count } = await supabase
+      .from('conversations')
+      .delete()
+      .eq('conversation_id', conversationId);
+    if (error) return res.status(500).json({ error: error.message });
+    // Optionally check if any row was deleted
+    res.status(204).end();
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
 }); 
