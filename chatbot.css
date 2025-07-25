@@ -559,42 +559,44 @@ body::after {
 /* Responsive design */
 @media (max-width: 520px) {
     .chatbot-container {
-        width: 95%;
-        margin: 20px auto;
-        border-radius: 28px;
+        width: 100vw;
+        min-width: 0;
+        border-radius: 0;
+        margin: 0;
     }
     
     .chat-display {
-        height: 480px;
-        padding: 24px 20px 20px 20px;
+        height: 60vh;
+        padding: 12px 6px 6px 6px;
     }
     
     .message {
-        max-width: 85%;
-        padding: 16px 20px;
+        max-width: 95%;
+        padding: 10px 14px;
         font-size: 15px;
     }
     
     .input-area {
-        padding: 24px 24px 24px 24px;
+        padding: 10px 6px 10px 6px;
+        gap: 6px;
     }
     
     #user-input {
-        padding: 16px 24px;
+        padding: 10px 14px;
         font-size: 15px;
     }
     
-    #send-btn, #reset-btn {
-        width: 54px;
-        height: 54px;
+    #send-btn, #reset-btn, #dashboard-btn {
+        width: 44px;
+        height: 44px;
     }
     
     .chatbot-header {
-        padding: 24px 24px 20px 24px;
+        padding: 14px 10px 10px 10px;
     }
     
     .chatbot-title {
-        font-size: 24px;
+        font-size: 20px;
     }
 }
 
