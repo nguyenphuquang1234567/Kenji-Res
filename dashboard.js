@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
     messagesContainer.style.display = 'block';
     messagesContainer.innerHTML = '<button class="mb-6 px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition" id="back-to-list">Back to List</button>';
     try {
-      const res = await fetch(`/api/conversations/${conversationId}/messages`);
+      const res = await fetch(`/api/conversations_messages?id=${encodeURIComponent(conversationId)}`);
       const data = await res.json();
       const messages = data.messages || [];
       if (messages.length === 0) {
@@ -80,7 +80,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function deleteConversation(conversationId) {
     try {
-      await fetch(`/api/conversations/${conversationId}`, { method: 'DELETE' });
+      await fetch(`/api/conversations`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ conversation_id: conversationId })
+      });
       await loadConversations();
     } catch (err) {
       alert('Failed to delete conversation.');
