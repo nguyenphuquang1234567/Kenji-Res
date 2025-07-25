@@ -584,6 +584,7 @@ body::after {
     #user-input {
         padding: 10px 14px;
         font-size: 15px;
+        max-width: 60vw;
     }
     
     #send-btn, #reset-btn, #dashboard-btn {
