@@ -51,9 +51,24 @@ module.exports = async (req, res) => {
     return res.status(400).json({ error: 'Missing message or sessionId' });
   }
 
+  // SỬA: Lấy lịch sử từ Supabase nếu conversations[sessionId] chưa có
   if (!conversations[sessionId]) {
-    conversations[sessionId] = [];
-    conversations[sessionId].push({ role: 'system', content: DEFAULT_SYSTEM_PROMPT });
+    try {
+      const { data, error } = await supabase
+        .from('conversations')
+        .select('messages')
+        .eq('conversation_id', sessionId)
+        .single();
+      if (data && data.messages) {
+        conversations[sessionId] = data.messages;
+      } else {
+        conversations[sessionId] = [];
+        conversations[sessionId].push({ role: 'system', content: DEFAULT_SYSTEM_PROMPT });
+      }
+    } catch (err) {
+      conversations[sessionId] = [];
+      conversations[sessionId].push({ role: 'system', content: DEFAULT_SYSTEM_PROMPT });
+    }
   }
   conversations[sessionId].push({ role: 'user', content: message });
 
