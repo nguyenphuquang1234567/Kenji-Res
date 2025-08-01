@@ -5,34 +5,8 @@ const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_KEY;
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const ANALYSIS_SYSTEM_PROMPT = `Extract the following customer details from the transcript:
-- Name
-- Email address
-- Phone number
-- Industry
-- Problems, needs, and goals summary
-- Availability
-- Whether they have booked a consultation (true/false)
-- Any special notes
-- Lead quality (categorize as 'good', 'ok', or 'spam')
-Format the response using this JSON schema:
-{
-  "type": "object",
-  "properties": {
-    "customerName": { "type": "string" },
-    "customerEmail": { "type": "string" },
-    "customerPhone": { "type": "string" },
-    "customerIndustry": { "type": "string" },
-    "customerProblem": { "type": "string" },
-    "customerAvailability": { "type": "string" },
-    "customerConsultation": { "type": "boolean" },
-    "specialNotes": { "type": "string" },
-    "leadQuality": { "type": "string", "enum": ["good", "ok", "spam"] }
-  },
-  "required": ["customerName", "customerEmail", "customerProblem", "leadQuality"]
-}
-
-If the user provided contact details, set lead quality to "good"; otherwise, "spam".`;
+// Webhook URL for conversation analysis
+const WEBHOOK_URL = process.env.CONVERSATION_WEBHOOK_URL;
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -53,6 +27,10 @@ module.exports = async (req, res) => {
     return res.status(400).json({ error: 'Missing conversationId' });
   }
 
+  if (!WEBHOOK_URL) {
+    return res.status(500).json({ error: 'Webhook URL not configured' });
+  }
+
   try {
     // Fetch conversation messages from database
     const { data: conversationData, error: fetchError } = await supabase
@@ -67,62 +45,40 @@ module.exports = async (req, res) => {
 
     const messages = conversationData.messages || [];
     
-    // Filter out system messages and create a transcript
-    const userMessages = messages.filter(msg => msg.role === 'user').map(msg => msg.content);
-    const assistantMessages = messages.filter(msg => msg.role === 'assistant').map(msg => msg.content);
-    
-    const transcript = `User messages: ${userMessages.join('\n')}\n\nAssistant responses: ${assistantMessages.join('\n')}`;
-
-    // Call OpenAI API for analysis
-    const response = await axios.post(
-      'https://api.openai.com/v1/chat/completions',
-      {
-        model: 'gpt-4.1-nano',
-        messages: [
-          { role: 'system', content: ANALYSIS_SYSTEM_PROMPT },
-          { role: 'user', content: `Please analyze this conversation transcript and extract customer information:\n\n${transcript}` }
-        ],
-        temperature: 0.1,
-        max_tokens: 1000
+    // Send complete conversation JSON to webhook (same as Supabase format)
+    const webhookResponse = await axios.post(WEBHOOK_URL, {
+      conversation_id: conversationId,
+      messages: messages, // Complete conversation JSON array
+      total_messages: messages.length,
+      timestamp: new Date().toISOString(),
+      manual_analysis: true // Flag to indicate this is a manual analysis request
+    }, {
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'MindTek-Chatbot/1.0'
       },
-      {
-        headers: {
-          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+      timeout: 15000 // 15 second timeout for manual analysis
+    });
 
-    const analysisText = response.data.choices[0].message.content;
-    
-    // Parse the JSON response
-    let analysis;
-    try {
-      // Extract JSON from the response (in case it's wrapped in markdown)
-      const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        analysis = JSON.parse(jsonMatch[0]);
-      } else {
-        analysis = JSON.parse(analysisText);
-      }
-    } catch (parseError) {
-      console.error('Failed to parse OpenAI response:', parseError);
-      return res.status(500).json({ error: 'Failed to parse analysis response' });
+    if (!webhookResponse.data || webhookResponse.status !== 200) {
+      return res.status(500).json({ error: 'Webhook analysis failed' });
     }
 
+    const analysis = webhookResponse.data;
+    
     // Update the conversation record with the analysis
     const { error: updateError } = await supabase
       .from('conversations')
       .update({
-        customer_name: analysis.customerName || '',
-        customer_email: analysis.customerEmail || '',
-        customer_phone: analysis.customerPhone || '',
-        customer_industry: analysis.customerIndustry || '',
-        customer_problem: analysis.customerProblem || '',
-        customer_availability: analysis.customerAvailability || '',
-        customer_consultation: analysis.customerConsultation || false,
-        special_notes: analysis.specialNotes || '',
-        lead_quality: analysis.leadQuality || 'spam',
+        customer_name: analysis.customerName || analysis.customer_name || '',
+        customer_email: analysis.customerEmail || analysis.customer_email || '',
+        customer_phone: analysis.customerPhone || analysis.customer_phone || '',
+        customer_industry: analysis.customerIndustry || analysis.customer_industry || '',
+        customer_problem: analysis.customerProblem || analysis.customer_problem || '',
+        customer_availability: analysis.customerAvailability || analysis.customer_availability || '',
+        customer_consultation: analysis.customerConsultation || analysis.customer_consultation || false,
+        special_notes: analysis.specialNotes || analysis.special_notes || '',
+        lead_quality: analysis.leadQuality || analysis.lead_quality || 'spam',
         analyzed_at: new Date().toISOString()
       })
       .eq('conversation_id', conversationId);
@@ -135,11 +91,11 @@ module.exports = async (req, res) => {
     res.json({ 
       success: true, 
       analysis: analysis,
-      message: 'Conversation analyzed successfully'
+      message: 'Conversation analyzed successfully via webhook'
     });
 
   } catch (error) {
-    console.error('Analysis error:', error.response?.data || error.message);
-    res.status(500).json({ error: 'Failed to analyze conversation' });
+    console.error('Webhook analysis error:', error.response?.data || error.message);
+    res.status(500).json({ error: 'Failed to analyze conversation via webhook' });
   }
 }; 
