@@ -8,9 +8,8 @@ body {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
     margin: 0;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    /* Allow floating widget on any page layout */
+    display: block;
     padding: 20px;
     position: relative;
     overflow-x: hidden;
@@ -96,6 +95,125 @@ body::after {
     position: relative;
     animation: slideInUp 1s cubic-bezier(0.16, 1, 0.3, 1);
     transform-style: preserve-3d;
+}
+
+/* Floating widget styles */
+.chatbot-floating {
+    position: fixed;
+    right: 20px;
+    bottom: 90px;
+    z-index: 9999;
+    width: 360px;
+    border-radius: 16px;
+}
+
+.chat-toggle-btn {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    box-shadow: 0 12px 24px rgba(0,0,0,0.18), 0 0 0 1px rgba(255,255,255,0.3);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    z-index: 10000;
+}
+
+.chat-toggle-btn:hover {
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 16px 34px rgba(0,0,0,0.22), 0 0 0 1px rgba(255,255,255,0.4);
+}
+
+.chat-close-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.chat-close-btn:hover { 
+    background: rgba(255,255,255,0.35);
+    transform: scale(1.05);
+}
+
+/* Compact overrides for floating widget */
+.chatbot-floating .chatbot-header {
+    padding: 12px 14px;
+}
+
+.chatbot-floating .chat-icon {
+    width: 36px;
+    height: 36px;
+}
+
+.chatbot-floating .chat-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.chatbot-floating .chatbot-title {
+    font-size: 18px;
+}
+
+.chatbot-floating .chat-display {
+    height: 420px;
+    padding: 16px 14px 14px 14px;
+    gap: 12px;
+}
+
+.chatbot-floating .msg-icon {
+    width: 32px;
+    height: 32px;
+}
+
+.chatbot-floating .message {
+    max-width: 85%;
+    padding: 12px 14px;
+    font-size: 14px;
+}
+
+.chatbot-floating .input-area {
+    padding: 12px 12px 12px 12px;
+    gap: 8px;
+}
+
+.chatbot-floating #user-input {
+    padding: 12px 14px;
+    font-size: 14px;
+}
+
+.chatbot-floating #send-btn, .chatbot-floating #reset-btn, .chatbot-floating #dashboard-btn {
+    width: 44px;
+    height: 44px;
+}
+
+/* Hide extra controls to keep the widget compact */
+.chatbot-floating #reset-btn, .chatbot-floating #dashboard-btn {
+    display: none;
+}
+
+.chatbot-floating .typing-indicator {
+    padding: 12px 14px;
+    gap: 6px;
+}
+
+.chatbot-floating .typing-dot {
+    width: 8px;
+    height: 8px;
 }
 
 .chatbot-container::before {

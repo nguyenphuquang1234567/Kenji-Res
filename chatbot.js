@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
+    const toggleBtn = document.getElementById('chat-toggle-btn');
+    const closeBtn = document.getElementById('chat-close-btn');
+    const panel = document.getElementById('chatbot-panel');
     const chatDisplay = document.getElementById('chat-display');
     const userInput = document.getElementById('user-input');
     const sendBtn = document.getElementById('send-btn');
@@ -7,10 +10,23 @@ document.addEventListener('DOMContentLoaded', function() {
     const userSVG = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="8" r="4" stroke="#fff" stroke-width="2"/><path d="M4 20c0-3.3137 3.134-6 7-6s7 2.6863 7 6" stroke="#fff" stroke-width="2"/></svg>`;
     const botSVG = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="8" width="16" height="10" rx="5" stroke="#fff" stroke-width="2"/><circle cx="9" cy="13" r="1.5" fill="#fff"/><circle cx="15" cy="13" r="1.5" fill="#fff"/><rect x="10.5" y="2" width="3" height="4" rx="1.5" stroke="#fff" stroke-width="2"/></svg>`;
 
-    // Welcome message
-    // setTimeout(() => {
-    //     appendMessage('Hello! I\'m your AI assistant. How can I help you today? 😊', 'bot');
-    // }, 500);
+    // Toggle handlers
+    if (toggleBtn && panel) {
+        toggleBtn.addEventListener('click', function() {
+            const isHidden = panel.style.display === 'none' || panel.style.display === '';
+            if (isHidden) {
+                panel.style.display = 'flex';
+                setTimeout(() => userInput && userInput.focus(), 50);
+            } else {
+                panel.style.display = 'none';
+            }
+        });
+    }
+    if (closeBtn && panel) {
+        closeBtn.addEventListener('click', function() {
+            panel.style.display = 'none';
+        });
+    }
 
     function appendMessage(content, sender) {
         const row = document.createElement('div');
