@@ -16,8 +16,8 @@ module.exports = async (req, res) => {
 
   if (req.method === 'GET') {
     const { data, error } = await supabase
-      .from('conversations')
-      .select('conversation_id, created_at, customer_name, customer_email, customer_phone, customer_industry, customer_problem, customer_availability, customer_consultation, special_notes, lead_quality, analyzed_at')
+      .from('restaurant')
+      .select('conversation_id, created_at, customer_name, customer_email, customer_phone, customer_address, order_time, lead_quality, analyzed_at')
       .order('created_at', { ascending: false });
     if (error) return res.status(500).json({ error: error.message });
     return res.json({ conversations: data });
@@ -35,7 +35,7 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Missing conversation_id' });
     }
     const { error } = await supabase
-      .from('conversations')
+      .from('restaurant')
       .delete()
       .eq('conversation_id', conversationId);
     if (error) return res.status(500).json({ error: error.message });

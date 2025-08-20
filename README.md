@@ -50,8 +50,7 @@ Set these in your environment (e.g., Vercel Project Settings → Environment Var
 Run `database_migration.sql` in Supabase SQL editor to add fields for analysis results:
 
 - `customer_name`, `customer_email`, `customer_phone`
-- `customer_industry`, `customer_problem`, `customer_availability`
-- `customer_consultation` (boolean), `special_notes`
+- `order_time`
 - `lead_quality` (enum: `good|ok|spam`), `analyzed_at`
 
 ## How It Works

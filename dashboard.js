@@ -223,11 +223,8 @@ document.addEventListener('DOMContentLoaded', () => {
       { key: 'customer_name', label: 'Customer Name', icon: '👤' },
       { key: 'customer_email', label: 'Email Address', icon: '📧' },
       { key: 'customer_phone', label: 'Phone Number', icon: '📞' },
-      { key: 'customer_industry', label: 'Industry', icon: '🏢' },
-      { key: 'customer_problem', label: 'Problems & Goals', icon: '🎯' },
-      { key: 'customer_availability', label: 'Availability', icon: '📅' },
-      { key: 'customer_consultation', label: 'Consultation Booked', icon: '✅' },
-      { key: 'special_notes', label: 'Special Notes', icon: '📝' }
+      { key: 'customer_address', label: 'Address', icon: '📍' },
+      { key: 'order_time', label: 'Order Time', icon: '⏰' }
     ];
 
     analysisFields.forEach(field => {
@@ -242,13 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const fieldValue = document.createElement('div');
       fieldValue.className = 'text-gray-800';
       
-      if (field.key === 'customer_consultation') {
-        fieldValue.innerHTML = conversation[field.key] ? 
-          '<span class="text-green-600 font-medium">✓ Yes</span>' : 
-          '<span class="text-red-600 font-medium">✗ No</span>';
-      } else {
-        fieldValue.textContent = conversation[field.key] || 'Not provided';
-      }
+      fieldValue.textContent = conversation[field.key] || 'Not provided';
       
       fieldContainer.appendChild(fieldValue);
       grid.appendChild(fieldContainer);

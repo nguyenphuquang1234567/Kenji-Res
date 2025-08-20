@@ -7,8 +7,19 @@
   <link rel="stylesheet" href="chatbot.css">
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Dashboard themed background using site image */
+    body {
+      min-height: 100vh;
+      margin: 0;
+      background:
+        linear-gradient(180deg, rgba(0,0,0,0.45), rgba(0,0,0,0.55)),
+        url('images/background.png') center/cover no-repeat fixed;
+      overflow-x: hidden;
+    }
+  </style>
 </head>
-<body class="min-h-screen bg-gradient-to-br from-indigo-400 via-pink-300 to-purple-400 flex items-center justify-center">
+<body class="min-h-screen flex items-center justify-center">
   <div class="chatbot-container flex flex-col items-center">
     <button class="mb-6 px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition" onclick="window.location.href='index.html'">Back To Chat</button>
     <div id="conversation-list" class="w-full"></div>

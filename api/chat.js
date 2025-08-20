@@ -5,8 +5,28 @@ const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_KEY;
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Webhook URL for conversation analysis
-const WEBHOOK_URL = process.env.CONVERSATION_WEBHOOK_URL;
+// Direct analysis system prompt for extracting customer info
+const ANALYSIS_SYSTEM_PROMPT = `Extract the following customer details from the transcript:
+- Name
+- Email address
+- Phone number
+- Order time
+- Address
+- Lead quality (categorize as 'good', 'ok', or 'spam')
+Format the response using this JSON schema:
+{
+  "type": "object",
+  "properties": {
+    "customerName": { "type": "string" },
+    "customerEmail": { "type": "string" },
+    "customerPhone": { "type": "string" },
+    "orderTime": { "type": "string" },
+    "customerAddress": { "type": "string" },
+    "leadQuality": { "type": "string", "enum": ["good", "ok", "spam"] }
+  },
+  "required": ["customerName", "customerEmail", "orderTime", "leadQuality"]
+}
+Return only a valid JSON object, with no extra commentary.`;
 
 const DEFAULT_SYSTEM_PROMPT = `You are Kenji Assistant — the friendly, concise virtual host of Kenji Shop, a contemporary Japanese restaurant.
 
@@ -38,71 +58,110 @@ BEHAVIOR
 - Never discuss unrelated services or other companies. Do not invent prices beyond the menu above. If an item isn’t listed, offer similar options or invite the guest to check the in-page menu.
 - Be helpful and proactive: suggest pairings (e.g., salad with ramen, dessert after mains) without being pushy.
 
-Process:
+Conversation flow:
 - First, if the user asks about the dishes, recommend them from the MENU REFERENCE
-- After the user has confirmed the dishes, ask them for their name, email, and phone number and address to save their order.
-- Next, ask them for the delivery time and confirmed the delivery time
-- After that, say thank you
+- After the user has confirmed the dishes, ask them for their name -> email -> phone number -> address to save their order, ask them one by one.
+- Next, ask them for date, time and their timezone,  and confirmed the delivery time
+- Finally, ask if they have any notes or questions before ending the chat.
 
 TONE
 - Courteous, concise, and welcoming — like a great host. Avoid long paragraphs; use bullets sparingly when listing options.`;
 const conversations = {};
 
-// Function to send conversation to webhook for analysis
-async function analyzeConversationWithWebhook(sessionId, messages) {
-  if (!WEBHOOK_URL) {
-    console.log('No webhook URL configured, skipping analysis');
-    return;
-  }
-
+// Directly analyze the conversation with OpenAI and save to Supabase
+async function analyzeConversationDirect(sessionId, messages) {
   try {
-    // Send complete conversation JSON to webhook (same as Supabase format)
-    const webhookResponse = await axios.post(WEBHOOK_URL, {
-      conversation_id: sessionId,
-      messages: messages, // Complete conversation JSON array
-      total_messages: messages.length,
-      timestamp: new Date().toISOString()
-    }, {
-      headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': 'KenjiShop-Chatbot/1.0'
+    const transcript = (messages || [])
+      .filter(m => m && (m.role === 'user' || m.role === 'assistant'))
+      .map(m => `${m.role.toUpperCase()}: ${m.content}`)
+      .join('\n');
+
+    const completion = await axios.post(
+      'https://api.openai.com/v1/chat/completions',
+      {
+        model: 'gpt-4.1-nano',
+        messages: [
+          { role: 'system', content: ANALYSIS_SYSTEM_PROMPT },
+          { role: 'user', content: `Transcript:\n${transcript}\n\nReturn only JSON.` }
+        ]
       },
-      timeout: 10000 // 10 second timeout
-    });
+      {
+        headers: {
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
 
-    // Process webhook response and update Supabase
-    if (webhookResponse.data && webhookResponse.status === 200) {
-      const analysis = webhookResponse.data;
-      
-      // Update conversation with analysis data
-      const updateData = {
-        customer_name: analysis.customerName || analysis.customer_name || '',
-        customer_email: analysis.customerEmail || analysis.customer_email || '',
-        customer_phone: analysis.customerPhone || analysis.customer_phone || '',
-        customer_industry: analysis.customerIndustry || analysis.customer_industry || '',
-        customer_problem: analysis.customerProblem || analysis.customer_problem || '',
-        customer_availability: analysis.customerAvailability || analysis.customer_availability || '',
-        customer_consultation: analysis.customerConsultation || analysis.customer_consultation || false,
-        special_notes: analysis.specialNotes || analysis.special_notes || '',
-        lead_quality: analysis.leadQuality || analysis.lead_quality || 'spam',
-        analyzed_at: new Date().toISOString()
-      };
+    let raw = completion.data?.choices?.[0]?.message?.content || '{}';
+    let extracted;
+    try {
+      extracted = JSON.parse(raw);
+    } catch {
+      const match = raw.match(/\{[\s\S]*\}/);
+      extracted = match ? JSON.parse(match[0]) : {};
+    }
 
-      const { error: updateError } = await supabase
-        .from('conversations')
-        .update(updateData)
-        .eq('conversation_id', sessionId);
+    // Lead quality rule override
+    const hasContacts = (extracted.customerEmail && extracted.customerEmail.trim()) || (extracted.customerPhone && extracted.customerPhone.trim());
+    const leadQuality = hasContacts ? 'good' : 'spam';
 
-      if (updateError) {
-        console.error('Failed to update conversation analysis:', updateError);
-      } else {
-        console.log(`Conversation ${sessionId} analyzed and updated successfully`);
+    // Format order time to "YYYY-MM-DD HH:MM:SS GMT+HH:MM"
+    function formatOrderTime(orderTimeRaw) {
+      if (!orderTimeRaw || typeof orderTimeRaw !== 'string') return '';
+      try {
+        const parsed = new Date(orderTimeRaw);
+        if (isNaN(parsed.getTime())) return orderTimeRaw;
+        let m = orderTimeRaw.match(/GMT([+-])(\d{2}):?(\d{2})/i) || orderTimeRaw.match(/UTC([+-])(\d{2}):?(\d{2})/i) || orderTimeRaw.match(/([+-])(\d{2}):?(\d{2})/);
+        let displayOffsetMin;
+        if (m) {
+          const sign = m[1] === '-' ? -1 : 1;
+          const oh = parseInt(m[2], 10) || 0;
+          const om = parseInt(m[3], 10) || 0;
+          displayOffsetMin = sign * (oh * 60 + om);
+        } else {
+          displayOffsetMin = -parsed.getTimezoneOffset();
+        }
+        const utcMs = parsed.getTime() + parsed.getTimezoneOffset() * 60000;
+        const targetMs = utcMs + displayOffsetMin * 60000;
+        const d = new Date(targetMs);
+        const pad = (n) => String(n).padStart(2, '0');
+        const yyyy = d.getUTCFullYear();
+        const mm = pad(d.getUTCMonth() + 1);
+        const dd = pad(d.getUTCDate());
+        const HH = pad(d.getUTCHours());
+        const MM = pad(d.getUTCMinutes());
+        const SS = pad(d.getUTCSeconds());
+        const s = displayOffsetMin >= 0 ? '+' : '-';
+        const a = Math.abs(displayOffsetMin);
+        const oh = pad(Math.floor(a / 60));
+        const om = pad(a % 60);
+        return `${yyyy}-${mm}-${dd} ${HH}:${MM}:${SS} GMT${s}${oh}:${om}`;
+      } catch {
+        return orderTimeRaw;
       }
     }
 
+    const updateData = {
+      customer_name: extracted.customerName || '',
+      customer_email: extracted.customerEmail || '',
+      customer_phone: extracted.customerPhone || '',
+      order_time: formatOrderTime(extracted.orderTime || extracted.order_time || ''),
+      customer_address: extracted.customerAddress || extracted.customer_address || '',
+      lead_quality: leadQuality,
+      analyzed_at: new Date().toISOString()
+    };
+
+    const { error: updateError } = await supabase
+      .from('restaurant')
+      .update(updateData)
+      .eq('conversation_id', sessionId);
+
+    if (updateError) {
+      console.error('Failed to update conversation analysis:', updateError);
+    }
   } catch (error) {
-    console.error('Webhook analysis error:', error.response?.data || error.message);
-    // Don't fail the chat if webhook analysis fails
+    console.error('Direct analysis error:', error.response?.data || error.message);
   }
 }
 
@@ -129,7 +188,7 @@ module.exports = async (req, res) => {
   if (!conversations[sessionId]) {
     try {
       const { data, error } = await supabase
-        .from('conversations')
+        .from('restaurant')
         .select('messages')
         .eq('conversation_id', sessionId)
         .single();
@@ -164,7 +223,7 @@ module.exports = async (req, res) => {
     conversations[sessionId].push({ role: 'assistant', content: aiMessage });
     
     try {
-      await supabase.from('conversations').upsert([
+      await supabase.from('restaurant').upsert([
         {
           conversation_id: sessionId,
           messages: conversations[sessionId],
@@ -174,8 +233,8 @@ module.exports = async (req, res) => {
       console.error('Supabase DB error:', dbError.message);
     }
 
-    // Automatically analyze conversation with webhook (non-blocking)
-    analyzeConversationWithWebhook(sessionId, conversations[sessionId])
+    // Automatically analyze conversation directly (non-blocking)
+    analyzeConversationDirect(sessionId, conversations[sessionId])
       .catch(error => {
         console.error('Background analysis failed:', error);
       });

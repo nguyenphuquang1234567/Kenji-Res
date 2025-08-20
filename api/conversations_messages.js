@@ -20,7 +20,7 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Missing conversation_id' });
     }
     const { data, error } = await supabase
-      .from('conversations')
+      .from('restaurant')
       .select('messages')
       .eq('conversation_id', conversationId)
       .single();
