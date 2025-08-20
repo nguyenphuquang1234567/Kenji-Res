@@ -719,6 +719,59 @@ body::after {
     .chatbot-title {
         font-size: 20px;
     }
+    
+    /* Floating chatbot: smaller on phones */
+    .chatbot-floating {
+        width: 85vw;
+        max-width: 320px;
+        right: 12px;
+        bottom: 76px;
+        border-radius: 14px;
+    }
+    .chatbot-floating .chat-display {
+        height: 45vh;
+        max-height: 320px;
+        padding: 10px 10px 8px 10px;
+        gap: 8px;
+    }
+    .chatbot-floating .message {
+        max-width: 88%;
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+    .chatbot-floating .input-area {
+        padding: 10px;
+        gap: 8px;
+    }
+    .chatbot-floating #user-input {
+        padding: 10px 12px;
+        font-size: 14px;
+        max-width: 58vw;
+    }
+    .chatbot-floating #send-btn, .chatbot-floating #reset-btn, .chatbot-floating #dashboard-btn {
+        width: 40px;
+        height: 40px;
+    }
+    .chatbot-floating .chatbot-header {
+        padding: 10px 12px;
+    }
+    .chatbot-floating .chat-icon {
+        width: 30px;
+        height: 30px;
+    }
+    .chatbot-floating .chat-icon svg {
+        width: 18px;
+        height: 18px;
+    }
+    .chatbot-floating .chatbot-title {
+        font-size: 16px;
+    }
+    .chat-toggle-btn {
+        width: 56px;
+        height: 56px;
+        right: 14px;
+        bottom: 14px;
+    }
 }
 
 /* Dark mode support */
