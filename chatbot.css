@@ -202,7 +202,8 @@ body::after {
 }
 
 /* Hide extra controls to keep the widget compact */
-.chatbot-floating #reset-btn, .chatbot-floating #dashboard-btn {
+/* Show both dashboard and reset buttons in floating mode */
+.chatbot-floating #dashboard-btn {
     display: none;
 }
 
