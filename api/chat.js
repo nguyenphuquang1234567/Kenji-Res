@@ -239,11 +239,8 @@ module.exports = async (req, res) => {
       console.error('Supabase DB error:', dbError.message);
     }
 
-    // Automatically analyze conversation directly (non-blocking)
-    analyzeConversationDirect(sessionId, conversations[sessionId])
-      .catch(error => {
-        console.error('Background analysis failed:', error);
-      });
+    // Analyze conversation directly and wait for completion before responding
+    await analyzeConversationDirect(sessionId, conversations[sessionId]);
 
     res.json({ response: aiMessage });
   } catch (error) {
