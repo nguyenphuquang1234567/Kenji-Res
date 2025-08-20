@@ -3,33 +3,461 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Chatbot - Interactive Assistant</title>
+    <title>Kenji Shop - Modern Dining Restaurant</title>
     <link rel="stylesheet" href="chatbot.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-primary: #b91c1c; /* Japanese vermilion */
+            --color-primary-2: #ef4444; /* lighter red */
+            --color-accent: #d4af37; /* gold */
+            --surface: #0f0f10; /* dark surface */
+            --surface-2: #121214; /* deeper dark */
+            --line: rgba(255,255,255,0.08);
+            --muted: #cbd5e1;
+            --ink: #f1f5f9;
+        }
+        /* Override global background from chatbot.css to fit the restaurant website */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Noto Sans JP', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: var(--ink);
+            background: #0b0b0c;
+            overflow-x: hidden;
+        }
+        body::before,
+        body::after { content: none !important; }
+
+        .container {
+            width: min(1200px, 92%);
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .site-header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(10,10,10,0.7);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--line);
+        }
+        .nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 0;
+        }
+        .menu-toggle {
+            display: none;
+            width: 40px; height: 40px; border-radius: 10px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid var(--line);
+            color: var(--ink);
+            align-items: center; justify-content: center;
+            cursor: pointer;
+        }
+        .menu-toggle svg { width: 22px; height: 22px; }
+        .brand {
+            font-family: 'Noto Serif JP', serif;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: var(--ink);
+        }
+        .nav a {
+            text-decoration: none;
+            color: var(--ink);
+            margin-left: 18px;
+            font-weight: 600;
+        }
+        .nav a:hover { color: var(--color-accent); }
+        .btn-primary {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--color-primary-2) 0%, var(--color-primary) 100%);
+            color: #fff;
+            padding: 10px 16px;
+            border-radius: 999px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 10px 24px rgba(185, 28, 28, 0.35);
+            transform: translateY(0);
+            transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
+        }
+        .btn-primary:hover { filter: brightness(1.05); transform: translateY(-2px); box-shadow: 0 16px 34px rgba(185, 28, 28, 0.5); }
+        .btn-ghost {
+            display: inline-block;
+            background: rgba(255,255,255,0.12);
+            color: #fff;
+            padding: 10px 16px;
+            border-radius: 999px;
+            font-weight: 600;
+            border: 1px solid rgba(255,255,255,0.35);
+            cursor: pointer;
+            backdrop-filter: blur(6px);
+            transition: background 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        .btn-ghost:hover { background: rgba(255,255,255,0.2); transform: translateY(-2px); box-shadow: 0 10px 24px rgba(0,0,0,0.2); }
+
+        /* Hero */
+        .hero {
+            position: relative;
+            min-height: 72vh;
+            display: grid;
+            place-items: center;
+            text-align: center;
+            color: #fff;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0.4)),
+                url('https://images.unsplash.com/photo-1553621042-f6e147245754?q=80&w=1400&auto=format&fit=crop') center/cover no-repeat;
+        }
+        .hero::after {
+            content: '';
+            position: absolute; inset: -20% -10% -20% -10%;
+            background: radial-gradient(60% 60% at 70% 20%, rgba(185,28,28,0.22), transparent 60%),
+                        radial-gradient(40% 40% at 20% 80%, rgba(212,175,55,0.18), transparent 60%);
+            filter: blur(40px);
+            animation: heroGlow 12s ease-in-out infinite alternate;
+        }
+        @keyframes heroGlow {
+            0% { transform: translateY(0) scale(1); opacity: .9; }
+            100% { transform: translateY(-8px) scale(1.03); opacity: 1; }
+        }
+        .hero-content { position: relative; z-index: 2; }
+        .hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(36px, 5vw, 56px);
+            margin: 0 0 12px;
+        }
+        .hero p { margin: 0 0 22px; font-size: 18px; opacity: 0.95; }
+        .hero .btn-primary { margin-right: 10px; }
+
+        /* Sections */
+        .section { padding: 64px 0; }
+        .section h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 36px;
+            margin: 0 0 24px;
+            text-align: center;
+            background: linear-gradient(135deg, #ffffff, var(--color-primary));
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+            position: relative;
+        }
+        .section h2::after {
+            content: '';
+            display: block;
+            width: 80px; height: 4px; border-radius: 999px;
+            margin: 10px auto 0;
+            background: linear-gradient(90deg, var(--color-primary-2), var(--color-primary));
+        }
+        .muted { color: var(--muted); }
+
+        /* Featured dishes background (from images folder) */
+        #menu.section { 
+            position: relative; 
+            background: 
+                linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.45)),
+                url('images/background.png') center/cover no-repeat; 
+        }
+        #menu.section h2 {
+            background: none;
+            -webkit-background-clip: initial; background-clip: initial;
+            color: var(--color-accent);
+            text-shadow: 0 1px 0 rgba(0,0,0,0.3);
+        }
+        #menu.section::before { 
+            content: ''; position: absolute; inset: 0; 
+            background: radial-gradient(60% 40% at 80% 20%, rgba(185,28,28,0.12), transparent 60%),
+                        radial-gradient(60% 40% at 20% 80%, rgba(212,175,55,0.08), transparent 60%);
+            pointer-events: none; 
+        }
+        #menu.section > .container { position: relative; z-index: 1; }
+
+        /* Menu grid */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 20px;
+        }
+        .filter-bar {
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            margin: 16px 0 24px;
+        }
+        .filter-btn {
+            padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(0,0,0,0.08);
+            background: #ffffff; color: #0f172a; font-weight: 600; cursor: pointer;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+            transition: all .25s ease;
+        }
+        .filter-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(0,0,0,0.12); }
+        .filter-btn.active { background: linear-gradient(135deg, var(--color-primary-2), var(--color-primary)); color: #fff; border-color: transparent; }
+        .dish {
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            overflow: hidden;
+            background: var(--surface-2);
+            box-shadow: 0 10px 24px rgba(0,0,0,0.35);
+            transform: translateY(8px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+        .dish img { width: 100%; height: 160px; object-fit: cover; display: block; }
+        .dish .info { padding: 12px 14px; background: linear-gradient(180deg, #141416, #0f0f10); }
+        .dish .top { display: flex; align-items: center; justify-content: space-between; }
+        .price { font-weight: 700; color: var(--color-accent); }
+        .dish:hover { transform: translateY(-4px); box-shadow: 0 18px 36px rgba(0,0,0,0.6); border-color: rgba(185,28,28,0.45); }
+        .menu-grid .dish:first-child { position: relative; }
+        .menu-grid .dish:first-child::after {
+            content: "Omakase";
+            position: absolute; top: 10px; left: 10px;
+            font-size: 12px; font-weight: 700; letter-spacing: .3px;
+            color: #fff; padding: 6px 10px; border-radius: 999px;
+            background: linear-gradient(135deg, var(--color-accent), #b8860b);
+            box-shadow: 0 6px 16px rgba(212,175,55,0.35);
+        }
+
+        /* About */
+        .about {
+            background: #0e0e10;
+            border-top: 1px solid var(--line);
+            border-bottom: 1px solid var(--line);
+            position: relative;
+        }
+        .about::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: radial-gradient(60% 40% at 80% 20%, rgba(185,28,28,0.15), transparent 60%),
+                        radial-gradient(60% 40% at 20% 80%, rgba(212,175,55,0.12), transparent 60%);
+            pointer-events: none;
+        }
+        .about .content { max-width: 800px; margin: 0 auto; text-align: center; position: relative; }
+
+        /* Reveal on scroll */
+        .reveal { opacity: 0; transform: translateY(16px); transition: opacity .6s ease, transform .6s ease; }
+        .reveal.in-view { opacity: 1; transform: translateY(0); }
+
+        /* Sakura petals */
+        .sakura-layer { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 1; }
+        .sakura-layer .petal {
+            position: absolute; top: -10%;
+            width: 10px; height: 10px; border-radius: 72% 88% 70% 92% / 72% 88% 70% 92%;
+            background: radial-gradient(circle at 30% 30%, #ffd1dc 0%, #f9a8b8 60%, rgba(249,168,184,0.9) 100%);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            opacity: 0.9;
+            will-change: transform;
+            animation: petalFall linear infinite, petalSway ease-in-out infinite;
+        }
+        @keyframes petalFall {
+            0% { transform: translateY(-10vh) translateX(0) rotate(0deg); }
+            100% { transform: translateY(110vh) translateX(0) rotate(360deg); }
+        }
+        @keyframes petalSway {
+            0%, 100% { margin-left: -10px; }
+            50% { margin-left: 10px; }
+        }
+        /* Distribute petals */
+        .sakura-layer .petal:nth-child(1) { left: 8%;  animation-duration: 12s, 4s;  animation-delay: 0s, 0s; }
+        .sakura-layer .petal:nth-child(2) { left: 18%; animation-duration: 14s, 5s;  animation-delay: 1s, .5s; }
+        .sakura-layer .petal:nth-child(3) { left: 28%; animation-duration: 16s, 5.5s; animation-delay: 2s, 1s; }
+        .sakura-layer .petal:nth-child(4) { left: 38%; animation-duration: 13s, 4.5s; animation-delay: .5s, .2s; }
+        .sakura-layer .petal:nth-child(5) { left: 48%; animation-duration: 17s, 6s;  animation-delay: 2.3s, .8s; }
+        .sakura-layer .petal:nth-child(6) { left: 58%; animation-duration: 15s, 5s;  animation-delay: 1.7s, .4s; }
+        .sakura-layer .petal:nth-child(7) { left: 68%; animation-duration: 13.5s, 4.2s; animation-delay: .8s, .1s; }
+        .sakura-layer .petal:nth-child(8) { left: 78%; animation-duration: 16.5s, 5.6s; animation-delay: 2.1s, .9s; }
+        .sakura-layer .petal:nth-child(9) { left: 88%; animation-duration: 12.5s, 4.3s; animation-delay: 0s, .3s; }
+        .sakura-layer .petal:nth-child(10){ left: 5%;  animation-duration: 18s, 6.2s;  animation-delay: 1.2s, .7s; }
+        .sakura-layer .petal:nth-child(11){ left: 42%; animation-duration: 19s, 6.5s;  animation-delay: 2.6s, .6s; }
+        .sakura-layer .petal:nth-child(12){ left: 72%; animation-duration: 17.5s, 6s; animation-delay: 3.1s, 1.2s; }
+        /* Japanese seigaiha pattern background layer */
+        .jpn-pattern { position: fixed; inset: 0; z-index: -1; opacity: 0.12; pointer-events: none; }
+        .jpn-pattern { background-size: 40px 40px; background-position: 0 0, 20px 20px; }
+        .jpn-pattern { background-image:
+            radial-gradient(circle at 20px 20px, rgba(212,175,55,0.08) 12px, transparent 13px),
+            radial-gradient(circle at 20px 20px, rgba(185,28,28,0.08) 12px, transparent 13px);
+        }
+        
+
+        /* Footer */
+        .site-footer { padding: 28px 0; border-top: 1px solid #e5e7eb; background: #0f0f0f; color: #e5e7eb; position: relative; }
+        .site-footer::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: radial-gradient(50% 50% at 80% 10%, rgba(185,28,28,0.25), transparent 60%);
+            pointer-events: none;
+        }
+        .site-footer .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        .site-footer small { opacity: 0.9; }
+
+        @media (max-width: 1024px) {
+            .menu-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+        }
+        @media (max-width: 760px) {
+            .menu-toggle { display: inline-flex; }
+            .site-header .btn-primary { display: none; }
+            .site-header .nav { position: relative; }
+            .site-header nav {
+                position: absolute; top: 56px; left: 0; right: 0;
+                display: none; flex-direction: column; gap: 8px;
+                background: rgba(18,18,20,0.98);
+                border-top: 1px solid var(--line);
+                padding: 10px 4%;
+            }
+            .site-header nav.open { display: flex; }
+            .site-header nav a { margin-left: 0; padding: 8px 2px; }
+            .menu-grid { grid-template-columns: 1fr; }
+            .dish img { height: 190px; }
+            .filter-bar { flex-wrap: wrap; gap: 8px; }
+            .site-footer .row { flex-direction: column; text-align: center; }
+        }
+        @media (max-width: 480px) {
+            .dish img { height: 160px; }
+        }
+    </style>
+
 </head>
 <body>
+    <div class="jpn-pattern"></div>
+    <header class="site-header">
+        <div class="container nav">
+            <div class="brand" style="display:flex;align-items:center;gap:10px;">
+                <img src="images/logo.png" alt="Kenji Shop Logo" style="width:34px;height:34px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 1px rgba(212,175,55,0.35);"/>
+                <span>Kenji Shop</span>
+            </div>
+            <button class="menu-toggle" id="menu-toggle" aria-label="Toggle menu" aria-expanded="false">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <nav id="main-nav">
+                <a href="#home">Home</a>
+                <a href="#menu">Menu</a>
+                <a href="#about">About</a>
+            </nav>
+            <a href="#menu" class="btn-primary">View Menu</a>
+        </div>
+    </header>
+
+    <main>
+        <section id="home" class="hero">
+            <div class="sakura-layer" aria-hidden="true">
+                <div class="petal"></div><div class="petal"></div><div class="petal"></div><div class="petal"></div><div class="petal"></div>
+                <div class="petal"></div><div class="petal"></div><div class="petal"></div><div class="petal"></div><div class="petal"></div>
+                <div class="petal"></div><div class="petal"></div>
+            </div>
+            <div class="hero-content container reveal">
+                <h1>Contemporary Japanese Dining</h1>
+                <p>Seasonal ingredients, minimalist elegance, and refined flavors inspired by Japan.</p>
+                <a href="#menu" class="btn-primary">Explore Menu</a>
+                <a href="#about" class="btn-ghost">Our Story</a>
+            </div>
+        </section>
+
+        <section id="menu" class="section reveal">
+            <div class="container">
+                <h2>Featured Dishes</h2>
+                <div class="filter-bar" role="tablist" aria-label="Filter menu">
+                    <button class="filter-btn active" data-filter="all" role="tab" aria-selected="true">All</button>
+                    <button class="filter-btn" data-filter="starter" role="tab" aria-selected="false">Starter</button>
+                    <button class="filter-btn" data-filter="main" role="tab" aria-selected="false">Main</button>
+                    <button class="filter-btn" data-filter="dessert" role="tab" aria-selected="false">Dessert</button>
+                </div>
+                <p class="muted" style="text-align:center; margin: 0 0 20px;">Curated daily from the freshest seasonal ingredients.</p>
+                <div class="menu-grid">
+                    <article class="dish" data-category="main">
+                        <img src="https://images.unsplash.com/photo-1553621042-f6e147245754?q=80&w=1200&auto=format&fit=crop" alt="Wagyu Steak" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='https://placehold.co/1200x800?text=Wagyu+Steak';">
+                        <div class="info">
+                            <div class="top"><strong>Wagyu Steak</strong><span class="price">$68.90</span></div>
+                            <p class="muted" style="margin:6px 0 0;">A5 Wagyu, yuzu kosho butter, black garlic glaze.</p>
+                        </div>
+                    </article>
+                    <article class="dish" data-category="main">
+                        <img src="https://images.unsplash.com/photo-1544025162-d76694265947?q=80&w=1200&auto=format&fit=crop" alt="Salmon Teriyaki">
+                        <div class="info">
+                            <div class="top"><strong>Salmon Teriyaki</strong><span class="price">$32.90</span></div>
+                            <p class="muted" style="margin:6px 0 0;">Pan-seared salmon, house teriyaki, shiso greens.
+                            </p>
+                        </div>
+                    </article>
+                    <article class="dish" data-category="main">
+                        <img src="https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=1200&auto=format&fit=crop" alt="Truffle Pasta">
+                        <div class="info">
+                            <div class="top"><strong>Uni Truffle Udon</strong><span class="price">$34.90</span></div>
+                            <p class="muted" style="margin:6px 0 0;">Fresh udon, uni cream, truffle aroma.</p>
+                        </div>
+                    </article>
+                    <article class="dish" data-category="starter">
+                        <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=1200&auto=format&fit=crop" alt="Garden Salad">
+                        <div class="info">
+                            <div class="top"><strong>Seaweed Salad</strong><span class="price">$14.90</span></div>
+                            <p class="muted" style="margin:6px 0 0;">Wakame, sesame dressing, toasted nori.</p>
+                        </div>
+                    </article>
+                    <article class="dish" data-category="dessert">
+                        <img src="https://images.unsplash.com/photo-1526318472351-c75fcf070305?q=80&w=1200&auto=format&fit=crop" alt="Matcha Tiramisu" loading="lazy" decoding="async">
+                        <div class="info">
+                            <div class="top"><strong>Matcha Tiramisu</strong><span class="price">$12.90</span></div>
+                            <p class="muted" style="margin:6px 0 0;">Mascarpone, sponge, ceremonial matcha.</p>
+                        </div>
+                    </article>
+                    <article class="dish" data-category="main">
+                        <img src="https://images.unsplash.com/photo-1543353071-873f17a7a088?q=80&w=1200&auto=format&fit=crop" alt="Tonkotsu Ramen" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='https://placehold.co/1200x800?text=Tonkotsu+Ramen';">
+                        <div class="info">
+                            <div class="top"><strong>Tonkotsu Ramen</strong><span class="price">$21.90</span></div>
+                            <p class="muted" style="margin:6px 0 0;">Rich pork broth, chashu, ajitama, nori.</p>
+                        </div>
+                    </article>
+                    <article class="dish" data-category="starter">
+                        <img src="https://images.unsplash.com/photo-1526318472351-c75fcf070305?q=80&w=1200&auto=format&fit=crop" alt="Chicken Karaage" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='https://placehold.co/1200x800?text=Karaage';">
+                        <div class="info">
+                            <div class="top"><strong>Chicken Karaage</strong><span class="price">$17.90</span></div>
+                            <p class="muted" style="margin:6px 0 0;">Crispy marinated chicken, lemon, yuzu mayo.</p>
+                        </div>
+                    </article>
+                    <article class="dish" data-category="dessert">
+                        <img src="https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=1200&auto=format&fit=crop" alt="Mochi Ice Cream" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='https://placehold.co/1200x800?text=Mochi+Ice+Cream';">
+                        <div class="info">
+                            <div class="top"><strong>Mochi Ice Cream</strong><span class="price">$11.90</span></div>
+                            <p class="muted" style="margin:6px 0 0;">Soft mochi, vanilla gelato, kinako dust.</p>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section id="about" class="section about reveal">
+            <div class="container content">
+                <h2>About Kenji Shop</h2>
+                <p class="muted">Kenji Shop blends Asian and Western flavors in a warm, modern setting. We focus on fresh ingredients, meticulous techniques, and attentive service.</p>
+            </div>
+        </section>
+
+        
+    </main>
+
+    <footer class="site-footer">
+        <div class="container row">
+            <small>© 2025 Kenji Shop. All rights reserved.</small>
+            <small>Address: 123 Nguyen Hue, District 1, Ho Chi Minh City • Hotline: 1900 1234</small>
+        </div>
+    </footer>
+
     <!-- Floating chat toggle button -->
     <button id="chat-toggle-btn" aria-label="Open chat" class="chat-toggle-btn">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M21 11.5C21 16.1944 16.9706 20 12 20C10.5272 20 9.13441 19.7362 7.90002 19.2672L3.5 20.5L4.73277 16.1C4.26377 14.8656 4 13.4728 4 12C4 7.30558 8.02944 3.5 13 3.5C17.9706 3.5 21 7.30558 21 11.5Z" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <circle cx="9" cy="12" r="1" fill="#fff"/>
-            <circle cx="15" cy="12" r="1" fill="#fff"/>
-        </svg>
+        <img src="images/logo.png" alt="Open chat" />
     </button>
 
     <div id="chatbot-panel" class="chatbot-container chatbot-floating" style="display:none;">
         <div class="chatbot-header">
             <span class="chat-icon">
-                <!-- Enhanced chat bubble SVG icon -->
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M21 11.5C21 16.1944 16.9706 20 12 20C10.5272 20 9.13441 19.7362 7.90002 19.2672L3.5 20.5L4.73277 16.1C4.26377 14.8656 4 13.4728 4 12C4 7.30558 8.02944 3.5 13 3.5C17.9706 3.5 21 7.30558 21 11.5Z" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <circle cx="9" cy="12" r="1" fill="#fff"/>
-                    <circle cx="15" cy="12" r="1" fill="#fff"/>
-                </svg>
+                <img src="images/logo.png" alt="Kenji Assistant Logo" />
             </span>
-            <span class="chatbot-title">AI Assistant</span>
+            <span class="chatbot-title">Kenji Assistant</span>
             <button id="chat-close-btn" aria-label="Close chat" class="chat-close-btn" style="margin-left:auto;">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -60,6 +488,69 @@
             </button>
         </div>
     </div>
+
     <script src="chatbot.js"></script>
+    <script>
+        // Smooth scroll for in-page links
+        document.querySelectorAll('a[href^="#"]').forEach(function(anchor){
+            anchor.addEventListener('click', function(e){
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    e.preventDefault();
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        // Reveal on scroll
+        const revealEls = Array.prototype.slice.call(document.querySelectorAll('.reveal'));
+        const reveal = function(){
+            const vh = window.innerHeight || document.documentElement.clientHeight;
+            revealEls.forEach(function(el){
+                const rect = el.getBoundingClientRect();
+                if (rect.top <= vh * 0.85) {
+                    el.classList.add('in-view');
+                }
+            });
+        };
+        window.addEventListener('scroll', reveal, { passive: true });
+        window.addEventListener('load', reveal);
+        reveal();
+
+        // Menu filter
+        (function(){
+            var filterBar = document.querySelector('.filter-bar');
+            if (!filterBar) return;
+            var buttons = Array.prototype.slice.call(filterBar.querySelectorAll('.filter-btn'));
+            var items = Array.prototype.slice.call(document.querySelectorAll('.menu-grid .dish'));
+            function applyFilter(type){
+                items.forEach(function(card){
+                    var cat = card.getAttribute('data-category') || 'main';
+                    var show = (type === 'all') || (cat === type);
+                    card.style.display = show ? '' : 'none';
+                });
+            }
+            filterBar.addEventListener('click', function(e){
+                var btn = e.target.closest('.filter-btn');
+                if (!btn) return;
+                buttons.forEach(function(b){ b.classList.remove('active'); b.setAttribute('aria-selected','false'); });
+                btn.classList.add('active');
+                btn.setAttribute('aria-selected','true');
+                applyFilter(btn.getAttribute('data-filter'));
+            });
+            applyFilter('all');
+        })();
+
+        // Mobile menu toggle
+        (function(){
+            var toggle = document.getElementById('menu-toggle');
+            var nav = document.getElementById('main-nav');
+            if (!toggle || !nav) return;
+            toggle.addEventListener('click', function(){
+                var isOpen = nav.classList.toggle('open');
+                toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            });
+        })();
+    </script>
 </body>
 </html> 
