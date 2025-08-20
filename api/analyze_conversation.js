@@ -12,6 +12,8 @@ const ANALYSIS_SYSTEM_PROMPT = `Extract the following customer details from the 
 - Phone number
 - Order time
 - Address
+- Order item
+- Special notes
 - Lead quality (categorize as 'good', 'ok', or 'spam')
 Format the response using this JSON schema:
 {
@@ -22,6 +24,8 @@ Format the response using this JSON schema:
     "customerPhone": { "type": "string" },
     "orderTime": { "type": "string" },
     "customerAddress": { "type": "string" },
+    "orderItem": { "type": "string" },
+    "specialNotes": { "type": "string" },
     "leadQuality": { "type": "string", "enum": ["good", "ok", "spam"] }
   },
   "required": ["customerName", "customerEmail", "orderTime", "leadQuality"]
@@ -143,6 +147,8 @@ module.exports = async (req, res) => {
         customer_phone: analysis.customerPhone || analysis.customer_phone || '',
         order_time: formatOrderTime(analysis.orderTime || analysis.order_time || ''),
         customer_address: analysis.customerAddress || analysis.customer_address || '',
+        order_item: analysis.orderItem || analysis.order_item || '',
+        special_notes: analysis.specialNotes || analysis.special_notes || '',
         lead_quality: analysis.leadQuality || analysis.lead_quality || 'spam',
         analyzed_at: new Date().toISOString()
       })

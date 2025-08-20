@@ -29,7 +29,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const infoBtn = document.createElement('button');
         infoBtn.className = 'text-left w-full';
         const date = new Date(conv.created_at || Date.now());
-        infoBtn.innerHTML = `<span class="font-medium text-gray-800">ID: ${conv.conversation_id}</span><span class="text-xs text-gray-500 ml-2">${date.toLocaleString()}</span>`;
+        const custName = (conv.customer_name && String(conv.customer_name).trim()) ? conv.customer_name : 'N/A';
+        const custPhone = (conv.customer_phone && String(conv.customer_phone).trim()) ? conv.customer_phone : 'N/A';
+        infoBtn.innerHTML = `
+          <span class="font-medium text-gray-800">${custName}</span>
+          <span class="text-sm text-gray-600 ml-2">• ${custPhone}</span>
+          <span class="text-xs text-gray-500 ml-2">${date.toLocaleString()}</span>
+        `;
         infoBtn.onclick = () => loadMessages(conv.conversation_id);
         leftSide.appendChild(infoBtn);
         
@@ -224,7 +230,9 @@ document.addEventListener('DOMContentLoaded', () => {
       { key: 'customer_email', label: 'Email Address', icon: '📧' },
       { key: 'customer_phone', label: 'Phone Number', icon: '📞' },
       { key: 'customer_address', label: 'Address', icon: '📍' },
-      { key: 'order_time', label: 'Order Time', icon: '⏰' }
+      { key: 'order_time', label: 'Order Time', icon: '⏰' },
+      { key: 'order_item', label: 'Order Item', icon: '🍽️' },
+      { key: 'special_notes', label: 'Special Notes', icon: '📝' }
     ];
 
     analysisFields.forEach(field => {

@@ -17,7 +17,7 @@ module.exports = async (req, res) => {
   if (req.method === 'GET') {
     const { data, error } = await supabase
       .from('restaurant')
-      .select('conversation_id, created_at, customer_name, customer_email, customer_phone, customer_address, order_time, lead_quality, analyzed_at')
+      .select('conversation_id, created_at, customer_name, customer_email, customer_phone, customer_address, order_time, order_item, special_notes, lead_quality, analyzed_at')
       .order('created_at', { ascending: false });
     if (error) return res.status(500).json({ error: error.message });
     return res.json({ conversations: data });

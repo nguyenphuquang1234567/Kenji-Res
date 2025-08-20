@@ -63,6 +63,11 @@ ALTER TABLE IF EXISTS restaurant DROP COLUMN IF EXISTS customer_availability;
 ALTER TABLE IF EXISTS restaurant DROP COLUMN IF EXISTS customer_consultation;
 
 -- Drop special_notes column if it exists (migrate away from this field)
-ALTER TABLE IF EXISTS restaurant DROP COLUMN IF EXISTS special_notes;
+-- Recreate special_notes for storing customer notes, if missing
+ALTER TABLE IF EXISTS restaurant ADD COLUMN IF NOT EXISTS special_notes TEXT;
+-- Add order_item column if missing
+ALTER TABLE IF EXISTS restaurant ADD COLUMN IF NOT EXISTS order_item TEXT;
+COMMENT ON COLUMN restaurant.order_item IS 'Items ordered by customer extracted from conversation';
+COMMENT ON COLUMN restaurant.special_notes IS 'Special notes from customer';
 COMMENT ON COLUMN restaurant.lead_quality IS 'Lead quality assessment: good, ok, or spam';
 COMMENT ON COLUMN restaurant.analyzed_at IS 'Timestamp when conversation was analyzed';

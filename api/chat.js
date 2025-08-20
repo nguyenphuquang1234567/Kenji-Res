@@ -12,6 +12,8 @@ const ANALYSIS_SYSTEM_PROMPT = `Extract the following customer details from the 
 - Phone number
 - Order time
 - Address
+- Order item
+- Special notes
 - Lead quality (categorize as 'good', 'ok', or 'spam')
 Format the response using this JSON schema:
 {
@@ -22,6 +24,8 @@ Format the response using this JSON schema:
     "customerPhone": { "type": "string" },
     "orderTime": { "type": "string" },
     "customerAddress": { "type": "string" },
+    "orderItem": { "type": "string" },
+    "specialNotes": { "type": "string" },
     "leadQuality": { "type": "string", "enum": ["good", "ok", "spam"] }
   },
   "required": ["customerName", "customerEmail", "orderTime", "leadQuality"]
@@ -148,6 +152,8 @@ async function analyzeConversationDirect(sessionId, messages) {
       customer_phone: extracted.customerPhone || '',
       order_time: formatOrderTime(extracted.orderTime || extracted.order_time || ''),
       customer_address: extracted.customerAddress || extracted.customer_address || '',
+      order_item: extracted.orderItem || extracted.order_item || '',
+      special_notes: extracted.specialNotes || extracted.special_notes || '',
       lead_quality: leadQuality,
       analyzed_at: new Date().toISOString()
     };
