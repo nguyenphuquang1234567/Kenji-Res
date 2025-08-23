@@ -74,7 +74,7 @@ module.exports = async (req, res) => {
     const completion = await axios.post(
       'https://api.openai.com/v1/chat/completions',
       {
-        model: 'gpt-4.1-nano',
+        model: 'gpt-5-nano',
         messages: [
           { role: 'system', content: ANALYSIS_SYSTEM_PROMPT },
           { role: 'user', content: `Transcript:\n${transcript}\n\nReturn only JSON.` }
