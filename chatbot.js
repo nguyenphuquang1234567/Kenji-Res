@@ -10,6 +10,66 @@ document.addEventListener('DOMContentLoaded', function() {
     const userSVG = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="8" r="4" stroke="#fff" stroke-width="2"/><path d="M4 20c0-3.3137 3.134-6 7-6s7 2.6863 7 6" stroke="#fff" stroke-width="2"/></svg>`;
     const botSVG = `<img src="images/logo.png" alt="Kenji Assistant" class="msg-avatar" />`;
 
+    // Food image mapping function
+    function getFoodImage(dishName) {
+        const foodImages = {
+            'wagyu': 'images/wagyu_steak.png',
+            'wagyu steak': 'images/wagyu_steak.png',
+            'salmon': 'images/salmon_teriyaki.png',
+            'salmon teriyaki': 'images/salmon_teriyaki.png',
+            'udon': 'images/udon.png',
+            'uni truffle udon': 'images/udon.png',
+            'seaweed': 'images/seaweed_salad.png',
+            'seaweed salad': 'images/seaweed_salad.png',
+            'matcha': 'images/matcha.png',
+            'matcha tiramisu': 'images/matcha.png',
+            'ramen': 'images/tonkotsu_ramen.png',
+            'tonkotsu': 'images/tonkotsu_ramen.png',
+            'tonkotsu ramen': 'images/tonkotsu_ramen.png',
+            'chicken': 'images/chicken.png',
+            'karaage': 'images/chicken.png',
+            'chicken karaage': 'images/chicken.png',
+            'mochi': 'images/mochi_ice_cream.png',
+            'mochi ice cream': 'images/mochi_ice_cream.png'
+        };
+        
+        const lowerDishName = dishName.toLowerCase();
+        for (const [key, imagePath] of Object.entries(foodImages)) {
+            if (lowerDishName.includes(key)) {
+                return imagePath;
+            }
+        }
+        return null;
+    }
+
+    // Function to check if message contains food recommendations
+    function containsFoodRecommendation(message) {
+        const foodKeywords = [
+            'wagyu', 'salmon', 'udon', 'seaweed', 'matcha', 'ramen', 
+            'chicken', 'karaage', 'mochi', 'steak', 'teriyaki', 'tiramisu'
+        ];
+        const lowerMessage = message.toLowerCase();
+        return foodKeywords.some(keyword => lowerMessage.includes(keyword));
+    }
+
+    // Function to extract dish names from message
+    function extractDishNames(message) {
+        const dishes = [];
+        const foodKeywords = [
+            'wagyu steak', 'salmon teriyaki', 'uni truffle udon', 'seaweed salad',
+            'matcha tiramisu', 'tonkotsu ramen', 'chicken karaage', 'mochi ice cream'
+        ];
+        
+        const lowerMessage = message.toLowerCase();
+        foodKeywords.forEach(dish => {
+            if (lowerMessage.includes(dish)) {
+                dishes.push(dish);
+            }
+        });
+        
+        return dishes;
+    }
+
     // Toggle handlers
     if (toggleBtn && panel) {
         toggleBtn.addEventListener('click', function() {
@@ -38,7 +98,31 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const msgDiv = document.createElement('div');
         msgDiv.className = 'message ' + sender;
-        msgDiv.textContent = content;
+        
+        // Check if this is a bot message with food recommendations
+        if (sender === 'bot' && containsFoodRecommendation(content)) {
+            const dishNames = extractDishNames(content);
+            
+            // Add the text content first
+            msgDiv.appendChild(document.createTextNode(content));
+            
+            // Add images for each dish mentioned
+            dishNames.forEach(dishName => {
+                const imagePath = getFoodImage(dishName);
+                if (imagePath) {
+                    const imgElement = document.createElement('img');
+                    imgElement.src = imagePath;
+                    imgElement.alt = dishName;
+                    imgElement.className = 'food-image';
+                    
+                    // Add line break before image
+                    msgDiv.appendChild(document.createElement('br'));
+                    msgDiv.appendChild(imgElement);
+                }
+            });
+        } else {
+            msgDiv.textContent = content;
+        }
         
         row.appendChild(icon);
         row.appendChild(msgDiv);

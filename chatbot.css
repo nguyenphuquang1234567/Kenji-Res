@@ -190,6 +190,17 @@ body::after {
 .chatbot-floating .input-area {
     padding: 12px 12px 12px 12px;
     gap: 8px;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+}
+
+.chatbot-floating .button-group {
+    gap: 6px;
+    flex-shrink: 0;
+    display: flex !important;
+    flex-direction: row !important;
+    margin-left: auto;
 }
 
 .chatbot-floating #user-input {
@@ -197,13 +208,11 @@ body::after {
     font-size: 14px;
 }
 
-.chatbot-floating #send-btn, .chatbot-floating #reset-btn, .chatbot-floating #dashboard-btn {
+.chatbot-floating #send-btn, .chatbot-floating #reset-btn {
     width: 44px;
     height: 44px;
 }
 
-/* Hide extra controls to keep the widget compact */
-/* Show both dashboard and reset buttons in floating mode */
 .chatbot-floating #dashboard-btn {
     display: none;
 }
@@ -498,6 +507,44 @@ body::after {
 .message.bot {
     background: rgba(28, 28, 32, 0.96);
     color: #e5e7eb;
+}
+
+/* Food image styling in chatbot messages */
+.message.bot .food-image {
+    width: 100%;
+    max-width: 200px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 12px;
+    margin: 12px 0 8px 0;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    border: 2px solid rgba(212,175,55,0.3);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.message.bot .food-image:hover {
+    transform: scale(1.02);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.35);
+    border-color: rgba(212,175,55,0.5);
+}
+
+/* Responsive food images */
+@media (max-width: 768px) {
+    .message.bot .food-image {
+        max-width: 160px;
+        height: 100px;
+        margin: 8px 0 6px 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .message.bot .food-image {
+        max-width: 140px;
+        height: 90px;
+        margin: 6px 0 4px 0;
+    }
+}
     border: 1px solid rgba(212, 175, 55, 0.18);
     backdrop-filter: blur(10px);
 }
@@ -507,9 +554,20 @@ body::after {
     background: linear-gradient(180deg, rgba(22, 22, 26, 0.95) 0%, rgba(15, 15, 18, 0.92) 100%);
     border-top: 1px solid rgba(212, 175, 55, 0.18);
     position: relative;
-    display: flex;
-    align-items: center;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
     gap: 12px;
+    min-height: 80px;
+}
+
+.button-group {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 8px;
+    align-items: center;
+    flex-shrink: 0;
+    margin-left: auto;
 }
 
 .input-area::before {
@@ -573,6 +631,8 @@ body::after {
     box-shadow: 
         0 6px 20px rgba(0, 0, 0, 0.15),
         0 0 0 1px rgba(255, 255, 255, 0.3);
+    flex-shrink: 0;
+    margin: 0;
 }
 
 #send-btn {
@@ -583,10 +643,15 @@ body::after {
 #reset-btn {
     background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
     color: #fff;
-    margin-left: 8px;
 }
 
-#send-btn::before, #reset-btn::before {
+#dashboard-btn {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: #fff;
+    display: none;
+}
+
+#send-btn::before, #reset-btn::before, #dashboard-btn::before {
     content: '';
     position: absolute;
     top: 0;
@@ -597,7 +662,7 @@ body::after {
     transition: left 0.6s ease;
 }
 
-#send-btn:hover::before, #reset-btn:hover::before {
+#send-btn:hover::before, #reset-btn:hover::before, #dashboard-btn:hover::before {
     left: 100%;
 }
 
@@ -617,7 +682,15 @@ body::after {
     transform: translateY(-4px) scale(1.08);
 }
 
-#send-btn:active, #reset-btn:active {
+#dashboard-btn:hover, #dashboard-btn:active {
+    background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);
+    box-shadow: 
+        0 10px 30px rgba(59, 130, 246, 0.4),
+        0 0 0 1px rgba(255, 255, 255, 0.4);
+    transform: translateY(-4px) scale(1.08);
+}
+
+#send-btn:active, #reset-btn:active, #dashboard-btn:active {
     transform: translateY(-2px) scale(0.98);
 }
 
@@ -634,6 +707,10 @@ body::after {
 
 #reset-btn:hover svg {
     transform: rotate(180deg) scale(1.15);
+}
+
+#dashboard-btn:hover svg {
+    transform: scale(1.15);
 }
 
 /* Enhanced typing indicator */
@@ -699,6 +776,18 @@ body::after {
     .input-area {
         padding: 10px 6px 10px 6px;
         gap: 6px;
+        min-height: 60px;
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+    }
+    
+    .button-group {
+        gap: 6px;
+        flex-shrink: 0;
+        display: flex !important;
+        flex-direction: row !important;
+        margin-left: auto;
     }
     
     #user-input {
@@ -707,9 +796,14 @@ body::after {
         max-width: 60vw;
     }
     
-    #send-btn, #reset-btn, #dashboard-btn {
+    #send-btn, #reset-btn {
         width: 44px;
         height: 44px;
+        margin: 0;
+    }
+    
+    #dashboard-btn {
+        display: none;
     }
     
     .chatbot-header {
@@ -742,15 +836,32 @@ body::after {
     .chatbot-floating .input-area {
         padding: 10px;
         gap: 8px;
+        min-height: 60px;
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+    }
+    
+    .chatbot-floating .button-group {
+        gap: 6px;
+        flex-shrink: 0;
+        display: flex !important;
+        flex-direction: row !important;
+        margin-left: auto;
     }
     .chatbot-floating #user-input {
         padding: 10px 12px;
         font-size: 14px;
         max-width: 58vw;
     }
-    .chatbot-floating #send-btn, .chatbot-floating #reset-btn, .chatbot-floating #dashboard-btn {
+    .chatbot-floating #send-btn, .chatbot-floating #reset-btn {
         width: 40px;
         height: 40px;
+        margin: 0;
+    }
+    
+    .chatbot-floating #dashboard-btn {
+        display: none;
     }
     .chatbot-floating .chatbot-header {
         padding: 10px 12px;
