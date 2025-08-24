@@ -5,11 +5,13 @@ A modern Japanese restaurant website with an intelligent AI chatbot that automat
 ## 🍜 Features
 
 - **Interactive Restaurant Website**: Beautiful, responsive design showcasing Kenji Shop's menu
-- **AI Chatbot**: Intelligent assistant that helps customers with menu questions and order placement
+- **AI Chatbot with Food Images**: Intelligent assistant that displays food images when recommending dishes
 - **Auto-Analysis**: Every customer message triggers automatic conversation analysis
 - **Order Management**: Extracts customer details, order items, and special requests
 - **Dashboard**: Admin panel to view conversations and manage orders
 - **Real-time Chat**: Seamless chat experience with conversation history
+- **Mobile Responsive**: Optimized for all devices with touch-friendly interface
+- **Modern UI/UX**: Japanese-inspired design with smooth animations and micro-interactions
 
 ## 🛠️ Tech Stack
 
@@ -17,7 +19,7 @@ A modern Japanese restaurant website with an intelligent AI chatbot that automat
 - **Backend**: Vercel Serverless Functions (Node.js)
 - **Database**: Supabase (PostgreSQL)
 - **AI**: OpenAI GPT-5 Nano
-- **Styling**: Custom CSS with modern design system
+- **Styling**: Custom CSS with modern design system and responsive breakpoints
 
 ## 📁 Project Structure
 
@@ -40,8 +42,8 @@ Kenji-Res/
 │   ├── udon.png
 │   └── wagyu_steak.png
 ├── index.html                    # Main restaurant website
-├── chatbot.js                    # Chat frontend logic
-├── chatbot.css                   # Chat styling
+├── chatbot.js                    # Chat frontend logic with food image display
+├── chatbot.css                   # Chat styling with responsive design
 ├── dashboard.html                # Admin dashboard
 ├── dashboard.js                  # Dashboard logic
 ├── database_migration.sql        # Supabase schema
@@ -51,7 +53,7 @@ Kenji-Res/
 
 ## 🍽️ Menu Items
 
-The restaurant features these signature dishes:
+The restaurant features these signature dishes with beautiful food images:
 - **Wagyu Steak** — $68.90 — A5 Wagyu, yuzu kosho butter, black garlic glaze
 - **Salmon Teriyaki** — $32.90 — Pan-seared salmon, house teriyaki, shiso greens
 - **Uni Truffle Udon** — $34.90 — Fresh udon, uni cream, truffle aroma
@@ -85,14 +87,23 @@ Run the `database_migration.sql` file in your Supabase SQL editor to create the 
 
 1. **Customer Interaction**: Users chat with Kenji Assistant through the website
 2. **Menu Assistance**: AI helps with menu questions, recommendations, and dietary info
-3. **Order Collection**: System collects customer details step by step:
+3. **Food Image Display**: When recommending dishes, chatbot automatically shows beautiful food images
+4. **Order Collection**: System collects customer details step by step:
    - Name → Email → Phone → Address
    - Order items and preferences
    - Delivery time and timezone
    - Special notes and questions
-4. **Auto-Analysis**: After each message, the system automatically analyzes the conversation
-5. **Data Extraction**: Extracts structured customer and order information
-6. **Database Storage**: Saves conversation history and analysis results
+5. **Auto-Analysis**: After each message, the system automatically analyzes the conversation
+6. **Data Extraction**: Extracts structured customer and order information
+7. **Database Storage**: Saves conversation history and analysis results
+
+## 🖼️ Food Image Feature
+
+The chatbot intelligently displays food images when discussing menu items:
+- **Automatic Detection**: Recognizes dish names in conversations
+- **Visual Enhancement**: Shows high-quality food images alongside text descriptions
+- **Responsive Images**: Optimized for all screen sizes
+- **Smooth Animations**: Elegant image transitions and hover effects
 
 ## 📊 Auto-Analysis Features
 
@@ -155,18 +166,29 @@ vercel dev
 ## 🎨 Design Features
 
 - **Modern UI**: Dark theme with Japanese-inspired design
-- **Responsive**: Works on desktop, tablet, and mobile
+- **Fully Responsive**: Optimized for desktop, tablet, and mobile devices
 - **Smooth Animations**: CSS transitions and micro-interactions
 - **Accessibility**: ARIA labels and keyboard navigation
 - **Performance**: Optimized images and lazy loading
+- **Touch-Friendly**: Mobile-optimized interface with proper touch targets
 
-## 📱 Chatbot Features
+## 📱 Responsive Design
 
-- **Floating Chat**: Non-intrusive chat button
+The website is fully responsive with breakpoints for:
+- **Desktop**: 1200px+ with full layout
+- **Tablet**: 768px-1024px with adapted grid
+- **Mobile**: <768px with single-column layout and mobile menu
+- **Small Mobile**: <480px with optimized spacing
+
+## 🤖 Chatbot Features
+
+- **Floating Chat**: Non-intrusive chat button with smooth animations
 - **Real-time Responses**: Instant AI-powered replies
+- **Food Image Display**: Automatic food images when discussing menu items
 - **Conversation History**: Persistent chat sessions
 - **Smart Recommendations**: Contextual menu suggestions
 - **Multi-language Support**: Responds in user's language
+- **Mobile Optimized**: Touch-friendly interface with proper button sizing
 
 ## 🔍 Dashboard Features
 
@@ -187,15 +209,25 @@ vercel dev
 
 - **Serverless**: Scalable Vercel functions
 - **CDN**: Global content delivery
-- **Optimized Images**: Compressed food images
-- **Lazy Loading**: Efficient resource loading
+- **Optimized Images**: Compressed food images with lazy loading
+- **Responsive Images**: Different sizes for different devices
+- **Efficient CSS**: Optimized stylesheets with minimal reflows
+
+## 🎯 Key Improvements
+
+### Latest Updates:
+- ✅ **Food Image Display**: Chatbot shows food images when recommending dishes
+- ✅ **Mobile Responsive**: Fully optimized for mobile devices
+- ✅ **Improved UI**: Better button layout and spacing
+- ✅ **Touch Optimization**: Proper touch targets for mobile users
+- ✅ **Performance**: Optimized loading and animations
 
 ## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Test thoroughly
+4. Test thoroughly on multiple devices
 5. Submit a pull request
 
 ## 📄 License
@@ -208,6 +240,7 @@ For issues or questions:
 1. Check the existing issues
 2. Create a new issue with detailed description
 3. Include error logs and steps to reproduce
+4. Specify device and browser information for responsive issues
 
 ---
 
