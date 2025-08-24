@@ -1,161 +1,214 @@
-# AI Chatbot with Supabase + Webhook Auto-Analysis
+# Kenji Shop - AI Restaurant Assistant
 
-A modern, lightweight chatbot that stores conversations in Supabase and automatically analyzes them via a webhook after each user message. Includes a dashboard to view conversations and trigger manual re-analysis.
+A modern Japanese restaurant website with an intelligent AI chatbot that automatically analyzes customer conversations and extracts order information. Built with vanilla JavaScript, Supabase, and OpenAI.
 
-## Features
+## 🍜 Features
 
-- Auto-analysis: every user message triggers a webhook for analysis (non-blocking)
-- Manual analysis: re-run analysis from the dashboard
-- Supabase persistence: full conversation history saved as JSON
-- Clean UI: animated chatbot UI and a simple conversations dashboard
-- Vercel-ready serverless API endpoints under `api/`
+- **Interactive Restaurant Website**: Beautiful, responsive design showcasing Kenji Shop's menu
+- **AI Chatbot**: Intelligent assistant that helps customers with menu questions and order placement
+- **Auto-Analysis**: Every customer message triggers automatic conversation analysis
+- **Order Management**: Extracts customer details, order items, and special requests
+- **Dashboard**: Admin panel to view conversations and manage orders
+- **Real-time Chat**: Seamless chat experience with conversation history
 
-## Tech Stack
+## 🛠️ Tech Stack
 
-- Frontend: Vanilla JS, HTML, CSS
-- Backend: Vercel serverless functions (Node.js)
-- Database: Supabase (PostgreSQL)
-- AI: Your webhook (you control the model) + OpenAI (optional in webhook example)
+- **Frontend**: Vanilla JavaScript, HTML5, CSS3
+- **Backend**: Vercel Serverless Functions (Node.js)
+- **Database**: Supabase (PostgreSQL)
+- **AI**: OpenAI GPT-5 Nano
+- **Styling**: Custom CSS with modern design system
 
-## Structure
+## 📁 Project Structure
 
 ```
-chatbot/
+Kenji-Res/
 ├── api/
-│   ├── chat.js                   # Chat endpoint (calls OpenAI, saves to Supabase, triggers webhook)
-│   ├── analyze_conversation.js   # Manual analyze endpoint (sends full JSON to webhook)
-│   ├── conversations.js          # List + delete conversations
-│   └── conversations_messages.js # Fetch messages for a conversation
-├── index.html                    # Chat UI
+│   ├── chat.js                   # Main chat endpoint with auto-analysis
+│   ├── analyze_conversation.js   # Manual conversation analysis
+│   ├── conversations.js          # List and delete conversations
+│   └── conversations_messages.js # Fetch conversation messages
+├── images/                       # Restaurant food images
+│   ├── background.png
+│   ├── chicken.png
+│   ├── logo.png
+│   ├── matcha.png
+│   ├── mochi_ice_cream.png
+│   ├── salmon_teriyaki.png
+│   ├── seaweed_salad.png
+│   ├── tonkotsu_ramen.png
+│   ├── udon.png
+│   └── wagyu_steak.png
+├── index.html                    # Main restaurant website
 ├── chatbot.js                    # Chat frontend logic
-├── chatbot.css                   # Styling
-├── dashboard.html                # Dashboard UI
+├── chatbot.css                   # Chat styling
+├── dashboard.html                # Admin dashboard
 ├── dashboard.js                  # Dashboard logic
-├── database_migration.sql        # Supabase schema changes for analysis fields
-├── vercel.json                   # Vercel config (version 2)
+├── database_migration.sql        # Supabase schema
+├── vercel.json                   # Vercel configuration
 └── package.json
 ```
 
-## Environment Variables
+## 🍽️ Menu Items
 
-Set these in your environment (e.g., Vercel Project Settings → Environment Variables):
+The restaurant features these signature dishes:
+- **Wagyu Steak** — $68.90 — A5 Wagyu, yuzu kosho butter, black garlic glaze
+- **Salmon Teriyaki** — $32.90 — Pan-seared salmon, house teriyaki, shiso greens
+- **Uni Truffle Udon** — $34.90 — Fresh udon, uni cream, truffle aroma
+- **Seaweed Salad** — $14.90 — Wakame, sesame dressing, toasted nori
+- **Matcha Tiramisu** — $12.90 — Mascarpone, sponge, ceremonial matcha
+- **Tonkotsu Ramen** — $21.90 — Rich pork broth, chashu, ajitama, nori
+- **Chicken Karaage** — $17.90 — Crispy marinated chicken, lemon, yuzu mayo
+- **Mochi Ice Cream** — $11.90 — Soft mochi, vanilla gelato, kinako dust
 
-- `SUPABASE_URL` — your Supabase project URL
-- `SUPABASE_KEY` — Supabase service role key
-- `OPENAI_API_KEY` — OpenAI API key (used by `api/chat.js` to generate replies)
-- `CONVERSATION_WEBHOOK_URL` — your webhook endpoint that analyzes a conversation
+## 🔧 Environment Variables
 
-## Database
+Set these in your Vercel project settings:
 
-Run `database_migration.sql` in Supabase SQL editor to add fields for analysis results:
+```bash
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_KEY=your_supabase_service_role_key
+OPENAI_API_KEY=your_openai_api_key
+```
 
-- `customer_name`, `customer_email`, `customer_phone`
-- `order_time`
-- `lead_quality` (enum: `good|ok|spam`), `analyzed_at`
+## 🗄️ Database Setup
 
-## How It Works
+Run the `database_migration.sql` file in your Supabase SQL editor to create the required schema:
 
-1. User sends a message from the chat UI (`index.html` → `chatbot.js`).
-2. `POST /api/chat` builds the message array and calls OpenAI to get the assistant reply.
-3. The full conversation JSON is saved to Supabase (`conversations` table).
-4. In the background, `api/chat.js` posts the full conversation JSON to your webhook.
-5. Your webhook returns structured customer info; backend updates Supabase with the results.
-6. On the dashboard, you can view conversations or click Analyze to re-run analysis via `POST /api/analyze_conversation`.
+```sql
+-- Creates restaurant table with analysis fields
+-- Includes: customer_name, customer_email, customer_phone, order_time, 
+-- customer_address, order_item, special_notes, lead_quality, analyzed_at
+```
 
-### Auto vs Manual Analysis
+## 🤖 How the AI Chatbot Works
 
-- Auto: Triggered after each user message (non-blocking; chat response is not delayed).
-- Manual: Triggered from the dashboard (re-analysis).
+1. **Customer Interaction**: Users chat with Kenji Assistant through the website
+2. **Menu Assistance**: AI helps with menu questions, recommendations, and dietary info
+3. **Order Collection**: System collects customer details step by step:
+   - Name → Email → Phone → Address
+   - Order items and preferences
+   - Delivery time and timezone
+   - Special notes and questions
+4. **Auto-Analysis**: After each message, the system automatically analyzes the conversation
+5. **Data Extraction**: Extracts structured customer and order information
+6. **Database Storage**: Saves conversation history and analysis results
 
-## API Endpoints
+## 📊 Auto-Analysis Features
 
-- `POST /api/chat`
-  - Body: `{ message: string, sessionId: string }`
-  - Returns: `{ response: string }`
-  - Side effects:
-    - Upserts full conversation to Supabase
-    - Sends the full JSON to `CONVERSATION_WEBHOOK_URL` for auto-analysis
+The system automatically extracts:
+- **Customer Information**: Name, email, phone, address
+- **Order Details**: Items ordered, special requests
+- **Timing**: Order time and delivery preferences
+- **Quality Assessment**: Lead quality (good/ok/spam)
+- **Notes**: Special instructions or dietary requirements
 
-- `POST /api/analyze_conversation`
-  - Body: `{ conversationId: string }`
-  - Sends the stored conversation JSON to `CONVERSATION_WEBHOOK_URL` and updates Supabase with returned fields
+## 🎛️ API Endpoints
 
-- `GET /api/conversations`
-  - Returns conversation list with analysis fields
+### Chat Endpoint
+```http
+POST /api/chat
+Content-Type: application/json
 
-- `DELETE /api/conversations?id=...` or body `{ conversation_id: ... }`
-  - Deletes a conversation
-
-- `GET /api/conversations_messages?id=...`
-  - Returns the `messages` array for a conversation
-
-## Webhook Contract
-
-Your webhook receives a POST like this (identical to how we store in Supabase):
-
-```json
 {
-  "conversation_id": "abc123",
-  "messages": [
-    { "role": "system", "content": "You are the MindTek AI Assistant..." },
-    { "role": "user", "content": "Hello" },
-    { "role": "assistant", "content": "Hi! How can I help you?" }
-  ],
-  "total_messages": 3,
-  "timestamp": "2024-01-15T10:30:00.000Z",
-  "manual_analysis": false
+  "message": "string",
+  "sessionId": "string"
 }
 ```
 
-Your webhook should return JSON with these fields (camelCase or snake_case supported):
+### Conversations Management
+```http
+GET /api/conversations                    # List all conversations
+DELETE /api/conversations?id=sessionId    # Delete conversation
+GET /api/conversations_messages?id=sessionId  # Get conversation messages
+```
 
-```json
+### Manual Analysis
+```http
+POST /api/analyze_conversation
+Content-Type: application/json
+
 {
-  "customerName": "John Doe",
-  "customerEmail": "john@example.com",
-  "customerPhone": "+1234567890",
-  "customerIndustry": "Real Estate",
-  "customerProblem": "Need help with lead generation and CRM integration",
-  "customerAvailability": "Weekdays 2-5 PM",
-  "customerConsultation": true,
-  "specialNotes": "Interested in chatbot solutions",
-  "leadQuality": "good"
+  "conversationId": "string"
 }
 ```
 
-These fields are persisted back into the `conversations` row along with `analyzed_at`.
+## 🚀 Deployment
 
-## Frontend
+### Vercel (Recommended)
+1. Connect your GitHub repository to Vercel
+2. Set environment variables in Vercel dashboard
+3. Deploy automatically on push
 
-- `index.html` — chat UI
-  - The assistant prompt guides: industry → challenges/goals → tailored services → collect name/email/phone → suggest booking → ask for date/time/timezone → final notes/questions.
-- `dashboard.html` — conversation list, view messages, analyze, delete
+### Local Development
+```bash
+# Install dependencies
+npm install
 
-## Running Locally
+# Install Vercel CLI
+npm i -g vercel
 
-This project is organized for Vercel serverless functions. Recommended:
+# Run locally
+vercel dev
+```
 
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
-2. Use Vercel CLI for local dev (recommended):
-   ```bash
-   npm i -g vercel
-   vercel dev
-   ```
-   - Static files served at `http://localhost:3000`
-   - API routes under `http://localhost:3000/api/*`
+## 🎨 Design Features
 
-Alternatively, deploy directly to Vercel and configure environment variables in the dashboard.
+- **Modern UI**: Dark theme with Japanese-inspired design
+- **Responsive**: Works on desktop, tablet, and mobile
+- **Smooth Animations**: CSS transitions and micro-interactions
+- **Accessibility**: ARIA labels and keyboard navigation
+- **Performance**: Optimized images and lazy loading
 
-## Notes & Tips
+## 📱 Chatbot Features
 
-- The webhook is optional for chat to work, but required for analysis fields to be populated.
-- Auto-analysis is fire-and-forget; failures are logged and do not block chat responses.
-- Ensure your webhook endpoint is public and fast (set reasonable timeouts your side).
-- Supabase upsert key: `conversation_id`.
+- **Floating Chat**: Non-intrusive chat button
+- **Real-time Responses**: Instant AI-powered replies
+- **Conversation History**: Persistent chat sessions
+- **Smart Recommendations**: Contextual menu suggestions
+- **Multi-language Support**: Responds in user's language
 
-## License
+## 🔍 Dashboard Features
 
-MIT
+- **Conversation Overview**: List all customer interactions
+- **Order Management**: View extracted order details
+- **Quality Filtering**: Filter by lead quality
+- **Manual Analysis**: Re-analyze conversations
+- **Data Export**: View full conversation transcripts
+
+## 🛡️ Security & Privacy
+
+- **CORS Protection**: Proper CORS headers for API endpoints
+- **Input Validation**: Sanitized user inputs
+- **Error Handling**: Graceful error responses
+- **Rate Limiting**: Built-in protection against abuse
+
+## 📈 Performance
+
+- **Serverless**: Scalable Vercel functions
+- **CDN**: Global content delivery
+- **Optimized Images**: Compressed food images
+- **Lazy Loading**: Efficient resource loading
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## 📄 License
+
+MIT License - feel free to use this project for your own restaurant or business.
+
+## 🆘 Support
+
+For issues or questions:
+1. Check the existing issues
+2. Create a new issue with detailed description
+3. Include error logs and steps to reproduce
+
+---
+
+**Kenji Shop** - Where tradition meets innovation in Japanese dining. 🍣✨
