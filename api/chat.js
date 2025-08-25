@@ -115,8 +115,23 @@ function checkForDishImageRequest(message) {
   
   // Check if message contains image keywords and a dish name
   for (const [dishName, description] of Object.entries(menuItems)) {
-    if (lowerMessage.includes(dishName.toLowerCase()) && 
-        imageKeywords.some(keyword => lowerMessage.includes(keyword))) {
+    const dishWords = dishName.toLowerCase().split(' ');
+    const messageWords = lowerMessage.split(' ');
+    
+    // Check if message contains image keywords
+    const hasImageKeyword = imageKeywords.some(keyword => lowerMessage.includes(keyword));
+    
+    // Check if message contains dish name (with fuzzy matching)
+    const hasDishName = dishWords.every(word => 
+      messageWords.some(msgWord => 
+        msgWord.includes(word) || word.includes(msgWord) || 
+        (word.length > 3 && msgWord.length > 3 && 
+         (msgWord.includes(word.substring(0, word.length - 1)) || 
+          word.includes(msgWord.substring(0, msgWord.length - 1))))
+      )
+    );
+    
+    if (hasDishName && hasImageKeyword) {
       return {
         dish_name: dishName,
         description: description
