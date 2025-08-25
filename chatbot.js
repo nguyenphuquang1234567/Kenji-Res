@@ -10,65 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const userSVG = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="8" r="4" stroke="#fff" stroke-width="2"/><path d="M4 20c0-3.3137 3.134-6 7-6s7 2.6863 7 6" stroke="#fff" stroke-width="2"/></svg>`;
     const botSVG = `<img src="images/logo.png" alt="Kenji Assistant" class="msg-avatar" />`;
 
-    // Food image mapping function
-    function getFoodImage(dishName) {
-        const foodImages = {
-            'wagyu': 'images/wagyu_steak.png',
-            'wagyu steak': 'images/wagyu_steak.png',
-            'salmon': 'images/salmon_teriyaki.png',
-            'salmon teriyaki': 'images/salmon_teriyaki.png',
-            'udon': 'images/udon.png',
-            'uni truffle udon': 'images/udon.png',
-            'seaweed': 'images/seaweed_salad.png',
-            'seaweed salad': 'images/seaweed_salad.png',
-            'matcha': 'images/matcha.png',
-            'matcha tiramisu': 'images/matcha.png',
-            'ramen': 'images/tonkotsu_ramen.png',
-            'tonkotsu': 'images/tonkotsu_ramen.png',
-            'tonkotsu ramen': 'images/tonkotsu_ramen.png',
-            'chicken': 'images/chicken.png',
-            'karaage': 'images/chicken.png',
-            'chicken karaage': 'images/chicken.png',
-            'mochi': 'images/mochi_ice_cream.png',
-            'mochi ice cream': 'images/mochi_ice_cream.png'
-        };
-        
-        const lowerDishName = dishName.toLowerCase();
-        for (const [key, imagePath] of Object.entries(foodImages)) {
-            if (lowerDishName.includes(key)) {
-                return imagePath;
-            }
-        }
-        return null;
-    }
 
-    // Function to check if message contains food recommendations
-    function containsFoodRecommendation(message) {
-        const foodKeywords = [
-            'wagyu', 'salmon', 'udon', 'seaweed', 'matcha', 'ramen', 
-            'chicken', 'karaage', 'mochi', 'steak', 'teriyaki', 'tiramisu'
-        ];
-        const lowerMessage = message.toLowerCase();
-        return foodKeywords.some(keyword => lowerMessage.includes(keyword));
-    }
-
-    // Function to extract dish names from message
-    function extractDishNames(message) {
-        const dishes = [];
-        const foodKeywords = [
-            'wagyu steak', 'salmon teriyaki', 'uni truffle udon', 'seaweed salad',
-            'matcha tiramisu', 'tonkotsu ramen', 'chicken karaage', 'mochi ice cream'
-        ];
-        
-        const lowerMessage = message.toLowerCase();
-        foodKeywords.forEach(dish => {
-            if (lowerMessage.includes(dish)) {
-                dishes.push(dish);
-            }
-        });
-        
-        return dishes;
-    }
 
     // Toggle handlers
     if (toggleBtn && panel) {
@@ -88,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function appendMessage(content, sender, dishesForBot) {
+    function appendMessage(content, sender) {
         const row = document.createElement('div');
         row.className = 'msg-row ' + sender;
         
@@ -99,25 +41,58 @@ document.addEventListener('DOMContentLoaded', function() {
         const msgDiv = document.createElement('div');
         msgDiv.className = 'message ' + sender;
         
-        // Default: just text
+        // Just text content
         msgDiv.textContent = content;
-
-        // Enhancement: if bot is replying immediately after the user mentioned a dish,
-        // append the corresponding images to the bot message while it introduces the dish.
-        if (sender === 'bot' && Array.isArray(dishesForBot) && dishesForBot.length > 0) {
-            dishesForBot.forEach(dishName => {
-                const imagePath = getFoodImage(dishName);
-                if (imagePath) {
-                    const br = document.createElement('br');
-                    const img = document.createElement('img');
-                    img.src = imagePath;
-                    img.alt = dishName;
-                    img.className = 'food-image';
-                    msgDiv.appendChild(br);
-                    msgDiv.appendChild(img);
-                }
+        
+        row.appendChild(icon);
+        row.appendChild(msgDiv);
+        chatDisplay.appendChild(row);
+        
+        // Enhanced scroll animation
+        setTimeout(() => {
+            chatDisplay.scrollTo({
+                top: chatDisplay.scrollHeight,
+                behavior: 'smooth'
             });
-        }
+        }, 150);
+        
+        // Add subtle entrance animation
+        row.style.opacity = '0';
+        row.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            row.style.transition = 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
+            row.style.opacity = '1';
+            row.style.transform = 'translateY(0)';
+        }, 50);
+    }
+
+    function appendMessageWithToolResults(content, sender, toolResults) {
+        const row = document.createElement('div');
+        row.className = 'msg-row ' + sender;
+        
+        const icon = document.createElement('span');
+        icon.className = 'msg-icon ' + sender;
+        icon.innerHTML = sender === 'user' ? userSVG : botSVG;
+        
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'message ' + sender;
+        
+        // Add text content
+        msgDiv.appendChild(document.createTextNode(content));
+        
+        // Add tool results (food images)
+        toolResults.forEach(toolResult => {
+            if (toolResult.image_url) {
+                const br = document.createElement('br');
+                const img = document.createElement('img');
+                img.src = toolResult.image_url;
+                img.alt = toolResult.dish_name;
+                img.className = 'food-image';
+                img.title = toolResult.description;
+                msgDiv.appendChild(br);
+                msgDiv.appendChild(img);
+            }
+        });
         
         row.appendChild(icon);
         row.appendChild(msgDiv);
@@ -199,7 +174,10 @@ document.addEventListener('DOMContentLoaded', function() {
         throw new Error('Failed to get response from backend');
       }
       const data = await response.json();
-      return data.response;
+      return {
+        response: data.response,
+        tool_results: data.tool_results
+      };
     }
 
     // Modify sendMessage to auto-create a new sessionId if starting a new conversation
@@ -222,11 +200,20 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Simulate bot thinking and responding
         try {
-            // Detect if user mentioned dishes; we'll attach images to the bot reply
-            const dishesMentionedByUser = extractDishNames(text);
-            const botResponse = await sendMessageToBackend(text);
+            const botData = await sendMessageToBackend(text);
             hideTypingIndicator();
-            appendMessage(botResponse, 'bot', dishesMentionedByUser);
+            
+            // Debug: Log the response
+            console.log('Bot response:', botData);
+            
+            // Handle tool results for food images
+            if (botData.tool_results && botData.tool_results.length > 0) {
+                console.log('Tool results found:', botData.tool_results);
+                appendMessageWithToolResults(botData.response, 'bot', botData.tool_results);
+            } else {
+                console.log('No tool results, showing normal message');
+                appendMessage(botData.response, 'bot');
+            }
         } catch (error) {
             hideTypingIndicator();
             appendMessage('Sorry, I encountered an error. Please try again later.', 'bot');

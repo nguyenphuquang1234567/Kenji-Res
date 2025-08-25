@@ -63,15 +63,69 @@ BEHAVIOR
 
 Conversation flow:
 - 1. First, ask if the user want to order something from the menu. If they mention a dish from the menu, go to step 4. If not, go to step 2.
-- 2. Then, recommend them from the MENU REFERENCE based on their preferences, do not include the price
-- 3. If the user confirm the dishes, confirm the user's dishes. Then, ask for the user's name -> email -> phone number -> address. Ask the user one by one.
-- 4. Next, ask them for date, time and their timezone,  and confirmed the delivery time.
-- 5. Finally, ask if they have any notes or questions before ending the chat.
-- 6. If the user has any notes or questions, ask them to send it to the email address: kenji.shop@gmail.com.
+- 2. Then, list all the dishes from the MENU REFERENCE, just include the dish name, and ask if the user like to know more about the dish or order it.
+- 3. After that, if user want to know more about a specific dish, use the tool show_food_image.
+- 4. If the user confirm the dishes, do not use the tool show_food_image, just confirm the user's dishes. Next, ask for the customer's name -> email -> phone number -> address. Ask the user one by one.
+- 5. Next, ask them for date, time and their timezone,  and confirmed the delivery time.
+- 6. Finally, ask if they have any notes or questions before ending the chat.
+- 7. If the user has any notes or questions, ask them to send it to the email address: kenji.shop@gmail.com.
 
 TONE
 - Avoid long paragraphs; use bullets sparingly when listing options.`;
 const conversations = {};
+
+// Function to get food image URL based on dish name
+function getFoodImageUrl(dishName) {
+  const foodImages = {
+    'wagyu steak': 'images/wagyu_steak.png',
+    'salmon teriyaki': 'images/salmon_teriyaki.png',
+    'uni truffle udon': 'images/udon.png',
+    'seaweed salad': 'images/seaweed_salad.png',
+    'matcha tiramisu': 'images/matcha.png',
+    'tonkotsu ramen': 'images/tonkotsu_ramen.png',
+    'chicken karaage': 'images/chicken.png',
+    'mochi ice cream': 'images/mochi_ice_cream.png'
+  };
+  
+  const normalizedName = dishName.toLowerCase().trim();
+  return foodImages[normalizedName] || null;
+}
+
+// Function to check if user is requesting to see a dish image
+function checkForDishImageRequest(message) {
+  const lowerMessage = message.toLowerCase();
+  
+  // Keywords that indicate user wants to see an image
+  const imageKeywords = [
+    'show me', 'show', 'see', 'look at', 'picture', 'image', 'photo', 'view', 'know',
+    'what does', 'how does', 'tell me about', 'more about', 'details about'
+  ];
+  
+  // Menu items with descriptions
+  const menuItems = {
+    'wagyu steak': 'A5 Wagyu, yuzu kosho butter, black garlic glaze',
+    'salmon teriyaki': 'Pan-seared salmon, house teriyaki, shiso greens',
+    'uni truffle udon': 'Fresh udon, uni cream, truffle aroma',
+    'seaweed salad': 'Wakame, sesame dressing, toasted nori',
+    'matcha tiramisu': 'Mascarpone, sponge, ceremonial matcha',
+    'tonkotsu ramen': 'Rich pork broth, chashu, ajitama, nori',
+    'chicken karaage': 'Crispy marinated chicken, lemon, yuzu mayo',
+    'mochi ice cream': 'Soft mochi, vanilla gelato, kinako dust'
+  };
+  
+  // Check if message contains image keywords and a dish name
+  for (const [dishName, description] of Object.entries(menuItems)) {
+    if (lowerMessage.includes(dishName.toLowerCase()) && 
+        imageKeywords.some(keyword => lowerMessage.includes(keyword))) {
+      return {
+        dish_name: dishName,
+        description: description
+      };
+    }
+  }
+  
+  return null;
+}
 
 // Directly analyze the conversation with OpenAI and save to Supabase
 async function analyzeConversationDirect(sessionId, messages) {
@@ -117,6 +171,11 @@ async function analyzeConversationDirect(sessionId, messages) {
       try {
         const parsed = new Date(orderTimeRaw);
         if (isNaN(parsed.getTime())) return orderTimeRaw;
+        
+        // Force the year to be current year
+        const currentYear = new Date().getFullYear();
+        parsed.setFullYear(currentYear);
+        
         let m = orderTimeRaw.match(/GMT([+-])(\d{2}):?(\d{2})/i) || orderTimeRaw.match(/UTC([+-])(\d{2}):?(\d{2})/i) || orderTimeRaw.match(/([+-])(\d{2}):?(\d{2})/);
         let displayOffsetMin;
         if (m) {
@@ -213,6 +272,69 @@ module.exports = async (req, res) => {
   conversations[sessionId].push({ role: 'user', content: message });
 
   try {
+    // Check if user is asking to see a specific dish image
+    const dishImageRequest = checkForDishImageRequest(message);
+    
+    if (dishImageRequest) {
+      // Handle dish image request directly without calling model
+      const toolResultsForResponse = [{
+        dish_name: dishImageRequest.dish_name,
+        description: dishImageRequest.description,
+        image_url: getFoodImageUrl(dishImageRequest.dish_name)
+      }];
+      
+      const aiMessage = `Here's the ${dishImageRequest.dish_name}: ${dishImageRequest.description}`;
+      
+      // Add to conversation history
+      conversations[sessionId].push({ 
+        role: 'assistant', 
+        content: aiMessage,
+        tool_calls: [{
+          id: 'direct_call',
+          type: 'function',
+          function: {
+            name: 'show_food_image',
+            arguments: JSON.stringify({
+              dish_name: dishImageRequest.dish_name,
+              description: dishImageRequest.description
+            })
+          }
+        }]
+      });
+      
+      // Add tool response message
+      conversations[sessionId].push({
+        role: 'tool',
+        tool_call_id: 'direct_call',
+        name: 'show_food_image',
+        content: JSON.stringify({
+          dish_name: dishImageRequest.dish_name,
+          description: dishImageRequest.description,
+          image_url: getFoodImageUrl(dishImageRequest.dish_name)
+        })
+      });
+      
+      // Save to database and analyze
+      try {
+        await supabase.from('restaurant').upsert([
+          {
+            conversation_id: sessionId,
+            messages: conversations[sessionId],
+          }
+        ], { onConflict: ['conversation_id'] });
+      } catch (dbError) {
+        console.error('Supabase DB error:', dbError.message);
+      }
+      
+      await analyzeConversationDirect(sessionId, conversations[sessionId]);
+      
+      return res.json({ 
+        response: aiMessage,
+        tool_results: toolResultsForResponse
+      });
+    }
+    
+    // Normal conversation - call model
     const response = await axios.post(
       'https://api.openai.com/v1/chat/completions',
       {
@@ -226,6 +348,7 @@ module.exports = async (req, res) => {
         },
       }
     );
+    
     const aiMessage = response.data.choices[0].message.content;
     conversations[sessionId].push({ role: 'assistant', content: aiMessage });
     
@@ -243,7 +366,10 @@ module.exports = async (req, res) => {
     // Analyze conversation directly and wait for completion before responding
     await analyzeConversationDirect(sessionId, conversations[sessionId]);
 
-    res.json({ response: aiMessage });
+    res.json({ 
+      response: aiMessage,
+      tool_results: null
+    });
   } catch (error) {
     console.error('OpenAI API error:', error.response?.data || error.message);
     res.status(500).json({ error: 'Failed to get response from OpenAI API' });
