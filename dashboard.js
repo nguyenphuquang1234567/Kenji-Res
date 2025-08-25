@@ -2,6 +2,56 @@ document.addEventListener('DOMContentLoaded', () => {
   const conversationList = document.getElementById('conversation-list');
   const messagesContainer = document.getElementById('messages-container');
   let conversations = [];
+  const BOT_ICON_PATH = 'images/logo.png';
+
+  // Helper: render lead quality summary cards
+  function renderLeadQualitySummary(parentEl, items) {
+    // Consider a conversation analyzed if it has analyzed_at or lead_quality present
+    const analyzed = items.filter(c => Boolean(c?.analyzed_at) || typeof c?.lead_quality === 'string');
+    const total = analyzed.length;
+
+    const counts = { good: 0, ok: 0, spam: 0 };
+    analyzed.forEach(c => {
+      const key = (c.lead_quality || '').toLowerCase();
+      if (key === 'good' || key === 'ok' || key === 'spam') counts[key] += 1;
+    });
+
+    const pct = (n) => total > 0 ? Math.round((n / total) * 1000) / 10 : 0; // one decimal place
+
+    const card = (label, count, percent, color) => `
+      <div class="flex-1 min-w-[200px] rounded-xl border shadow-sm p-4 bg-white ${color.border}">
+        <div class="text-sm text-gray-600">${label}</div>
+        <div class="mt-2 flex items-baseline gap-2">
+          <div class="text-2xl font-bold ${color.text}">${percent}%</div>
+          <div class="text-sm text-gray-500">(${count}/${total || 0})</div>
+        </div>
+        <div class="mt-2 h-2 rounded-full bg-gray-100 overflow-hidden">
+          <div class="h-full ${color.bg}" style="width:${percent}%;"></div>
+        </div>
+      </div>`;
+
+    const summary = document.createElement('div');
+    summary.className = 'mb-6';
+
+    if (total === 0) {
+      summary.innerHTML = `
+        <div class="rounded-xl border p-4 bg-white text-sm text-gray-600 text-center">
+          No analyzed conversations yet. Analyze a conversation to see lead quality breakdown.
+        </div>`;
+      parentEl.appendChild(summary);
+      return;
+    }
+
+    summary.innerHTML = `
+      <h3 class="text-lg font-semibold mb-3 text-gray-800 text-center">Lead Quality Breakdown (analyzed: ${total})</h3>
+      <div class="flex flex-col md:flex-row gap-3">
+        ${card('Good', counts.good, pct(counts.good), { text: 'text-green-700', bg: 'bg-green-500', border: 'border-green-100' })}
+        ${card('OK', counts.ok, pct(counts.ok), { text: 'text-yellow-700', bg: 'bg-yellow-400', border: 'border-yellow-100' })}
+        ${card('Spam', counts.spam, pct(counts.spam), { text: 'text-red-700', bg: 'bg-red-500', border: 'border-red-100' })}
+      </div>`;
+
+    parentEl.appendChild(summary);
+  }
 
   // Fetch and display all conversations
   async function loadConversations() {
@@ -16,6 +66,10 @@ document.addEventListener('DOMContentLoaded', () => {
         conversationList.innerHTML += '<p class="text-gray-500 text-center">No conversations found.</p>';
         return;
       }
+
+      // Lead quality summary at the top
+      renderLeadQualitySummary(conversationList, conversations);
+
       const list = document.createElement('div');
       list.className = 'flex flex-col gap-2';
       conversations.forEach(conv => {
@@ -57,6 +111,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Right side with action buttons
         const rightSide = document.createElement('div');
         rightSide.className = 'flex items-center gap-2';
+        
+        // (Removed) View conversation button per user's request
         
         // Analyze button
         const analyzeBtn = document.createElement('button');
@@ -130,7 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
           icon.className = `msg-icon ${msg.role === 'user' ? '' : 'bot'}`;
           icon.innerHTML = msg.role === 'user'
             ? `<svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14c-2.5 0-4.5 1.5-4.5 3v1h9v-1c0-1.5-2-3-4.5-3z"/><circle cx="12" cy="10" r="2.5"/></svg>`
-            : `<svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor"><rect x="4" y="4" width="16" height="16" rx="8" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 15h8M9 9h6"/></svg>`;
+            : `<img src="${BOT_ICON_PATH}" alt="Bot" class="msg-avatar" />`;
 
           // Bong bóng chat
           const div = document.createElement('div');
@@ -191,7 +247,9 @@ document.addEventListener('DOMContentLoaded', () => {
   async function showAnalysis(conversation) {
     conversationList.style.display = 'none';
     messagesContainer.style.display = 'block';
-    
+    // Clear any previous analysis/messages content before rendering new one
+    messagesContainer.innerHTML = '';
+
     const backBtn = document.createElement('button');
     backBtn.className = 'mb-6 px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition';
     backBtn.textContent = 'Back to List';
@@ -264,6 +322,61 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     messagesContainer.appendChild(analysisContainer);
+
+    // Render full conversation thread under the analysis
+    const threadWrap = document.createElement('div');
+    threadWrap.className = 'mt-8 bg-white rounded-lg shadow p-6 max-w-4xl mx-auto';
+    const threadTitle = document.createElement('h3');
+    threadTitle.className = 'text-xl font-semibold mb-4 text-gray-800';
+    threadTitle.textContent = 'Conversation';
+    threadWrap.appendChild(threadTitle);
+
+    const threadList = document.createElement('div');
+    threadList.className = 'flex flex-col gap-3';
+    threadWrap.appendChild(threadList);
+    messagesContainer.appendChild(threadWrap);
+
+    try {
+      const res = await fetch(`/api/conversations_messages?id=${encodeURIComponent(conversation.conversation_id)}`);
+      const data = await res.json();
+      const messages = data.messages || [];
+      if (messages.length === 0) {
+        const empty = document.createElement('p');
+        empty.className = 'text-gray-500';
+        empty.textContent = 'No messages in this conversation.';
+        threadWrap.appendChild(empty);
+      } else {
+        messages.forEach(msg => {
+          if (msg.role === 'system') return; // Skip system messages
+          const row = document.createElement('div');
+          row.className = `msg-row ${msg.role === 'user' ? 'user' : 'bot'}`;
+
+          const icon = document.createElement('div');
+          icon.className = `msg-icon ${msg.role === 'user' ? '' : 'bot'}`;
+          icon.innerHTML = msg.role === 'user'
+            ? `<svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14c-2.5 0-4.5 1.5-4.5 3v1h9v-1c0-1.5-2-3-4.5-3z"/><circle cx="12" cy="10" r="2.5"/></svg>`
+            : `<img src="${BOT_ICON_PATH}" alt="Bot" class="msg-avatar" />`;
+
+          const div = document.createElement('div');
+          div.className = `message ${msg.role === 'user' ? 'user' : 'bot'}`;
+          div.innerHTML = `<span>${msg.content}</span>`;
+
+          if (msg.role === 'user') {
+            row.appendChild(div);
+            row.appendChild(icon);
+          } else {
+            row.appendChild(icon);
+            row.appendChild(div);
+          }
+          threadList.appendChild(row);
+        });
+      }
+    } catch (err) {
+      const errEl = document.createElement('p');
+      errEl.className = 'text-red-500';
+      errEl.textContent = 'Error loading conversation messages.';
+      threadWrap.appendChild(errEl);
+    }
   }
 
   loadConversations();

@@ -17,6 +17,18 @@
         url('images/background.png') center/cover no-repeat fixed;
       overflow-x: hidden;
     }
+    /* Expand and flatten the dashboard container on desktops */
+    @media (min-width: 1024px) {
+      .chatbot-container {
+        width: 100vw;        /* cover full canvas width */
+        max-width: none;     /* remove cap */
+        background: transparent; /* no dark panel */
+        border: none;
+        box-shadow: none;
+      }
+      /* remove decorative overlay from chatbot.css */
+      .chatbot-container::before { content: none !important; }
+    }
   </style>
 </head>
 <body class="min-h-screen flex items-center justify-center">
