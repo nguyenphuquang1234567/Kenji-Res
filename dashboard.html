@@ -29,6 +29,17 @@
       /* remove decorative overlay from chatbot.css */
       .chatbot-container::before { content: none !important; }
     }
+    /* Also transparent on mobile/tablet */
+    @media (max-width: 1023px) {
+      .chatbot-container {
+        width: 100vw;
+        max-width: none;
+        background: transparent;
+        border: none;
+        box-shadow: none;
+      }
+      .chatbot-container::before { content: none !important; }
+    }
   </style>
 </head>
 <body class="min-h-screen flex items-center justify-center">
