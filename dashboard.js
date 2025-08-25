@@ -148,14 +148,22 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!raw) return;
       const key = raw.toLowerCase();
       const normalized = (
-        key.includes('wagyu') ? 'Wagyu Steak' :
-        key.includes('salmon') ? 'Salmon Teriyaki' :
-        key.includes('udon') || key.includes('uni') ? 'Uni Truffle Udon' :
-        key.includes('seaweed') ? 'Seaweed Salad' :
-        key.includes('matcha') ? 'Matcha Tiramisu' :
-        key.includes('ramen') ? 'Tonkotsu Ramen' :
-        key.includes('karaage') || key.includes('chicken') ? 'Chicken Karaage' :
-        key.includes('mochi') ? 'Mochi Ice Cream' :
+        // Wagyu variations
+        key.includes('wagyu') || key.includes('waygu') || key.includes('wagy') ? 'Wagyu Steak' :
+        // Salmon variations  
+        key.includes('salmon') || key.includes('salom') || key.includes('teriyaki') ? 'Salmon Teriyaki' :
+        // Udon variations
+        key.includes('udon') || key.includes('uni') || key.includes('truffle') ? 'Uni Truffle Udon' :
+        // Seaweed variations
+        key.includes('seaweed') || key.includes('seawead') || key.includes('wakame') ? 'Seaweed Salad' :
+        // Matcha variations
+        key.includes('matcha') || key.includes('tiramisu') || key.includes('match') ? 'Matcha Tiramisu' :
+        // Ramen variations
+        key.includes('ramen') || key.includes('tonkotsu') || key.includes('tonkatsu') ? 'Tonkotsu Ramen' :
+        // Chicken variations
+        key.includes('karaage') || key.includes('chicken') || key.includes('kara') ? 'Chicken Karaage' :
+        // Mochi variations
+        key.includes('mochi') || key.includes('ice cream') || key.includes('icecream') ? 'Mochi Ice Cream' :
         c.order_item // fallback original
       );
       countsMap.set(normalized, (countsMap.get(normalized) || 0) + 1);
