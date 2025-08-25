@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function appendMessage(content, sender) {
+    function appendMessage(content, sender, dishesForBot) {
         const row = document.createElement('div');
         row.className = 'msg-row ' + sender;
         
@@ -99,29 +99,24 @@ document.addEventListener('DOMContentLoaded', function() {
         const msgDiv = document.createElement('div');
         msgDiv.className = 'message ' + sender;
         
-        // Check if this is a bot message with food recommendations
-        if (sender === 'bot' && containsFoodRecommendation(content)) {
-            const dishNames = extractDishNames(content);
-            
-            // Add the text content first
-            msgDiv.appendChild(document.createTextNode(content));
-            
-            // Add images for each dish mentioned
-            dishNames.forEach(dishName => {
+        // Default: just text
+        msgDiv.textContent = content;
+
+        // Enhancement: if bot is replying immediately after the user mentioned a dish,
+        // append the corresponding images to the bot message while it introduces the dish.
+        if (sender === 'bot' && Array.isArray(dishesForBot) && dishesForBot.length > 0) {
+            dishesForBot.forEach(dishName => {
                 const imagePath = getFoodImage(dishName);
                 if (imagePath) {
-                    const imgElement = document.createElement('img');
-                    imgElement.src = imagePath;
-                    imgElement.alt = dishName;
-                    imgElement.className = 'food-image';
-                    
-                    // Add line break before image
-                    msgDiv.appendChild(document.createElement('br'));
-                    msgDiv.appendChild(imgElement);
+                    const br = document.createElement('br');
+                    const img = document.createElement('img');
+                    img.src = imagePath;
+                    img.alt = dishName;
+                    img.className = 'food-image';
+                    msgDiv.appendChild(br);
+                    msgDiv.appendChild(img);
                 }
             });
-        } else {
-            msgDiv.textContent = content;
         }
         
         row.appendChild(icon);
@@ -227,9 +222,11 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Simulate bot thinking and responding
         try {
+            // Detect if user mentioned dishes; we'll attach images to the bot reply
+            const dishesMentionedByUser = extractDishNames(text);
             const botResponse = await sendMessageToBackend(text);
             hideTypingIndicator();
-            appendMessage(botResponse, 'bot');
+            appendMessage(botResponse, 'bot', dishesMentionedByUser);
         } catch (error) {
             hideTypingIndicator();
             appendMessage('Sorry, I encountered an error. Please try again later.', 'bot');

@@ -323,7 +323,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function loadConversations() {
     messagesContainer.style.display = 'none';
     conversationList.style.display = 'block';
-    conversationList.innerHTML = '<h2 class="text-2xl font-bold mb-4 text-center">Conversations</h2>';
+    conversationList.innerHTML = '';
     try {
       const res = await fetch('/api/conversations');
       const data = await res.json();

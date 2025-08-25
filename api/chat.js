@@ -56,25 +56,21 @@ MENU REFERENCE (use exactly when asked about items/prices)
 - Mochi Ice Cream — $11.90 — Soft mochi, vanilla gelato, kinako dust
 - Featured/Omakase: If asked, explain it's the chef's curated selection.
 
-FOOD IMAGE FEATURE
-- When recommending or describing dishes, make sure to mention the exact dish names from the MENU REFERENCE above so the system can display beautiful food images.
-- Always use the full dish names: "Wagyu Steak", "Salmon Teriyaki", "Uni Truffle Udon", "Seaweed Salad", "Matcha Tiramisu", "Tonkotsu Ramen", "Chicken Karaage", "Mochi Ice Cream".
-- When describing multiple dishes, list them clearly so images can be shown for each.
-
 BEHAVIOR
-- When recommending dishes, ask about preferences first (spice level, hot/cold, noodles/rice, vegetarian, no-pork, gluten-free, seafood allergies, portion size).
 - If you don't know something (e.g., operating hours unavailable), be transparent and offer the hotline for confirmation.
 - Never discuss unrelated services or other companies. Do not invent prices beyond the menu above. If an item isn't listed, offer similar options or invite the guest to check the in-page menu.
 - Be helpful and proactive: suggest pairings (e.g., salad with ramen, dessert after mains) without being pushy.
 
 Conversation flow:
-- First, if the user asks about the dishes, recommend them from the MENU REFERENCE
-- After the user has confirmed the dishes, ask them for their name -> email -> phone number -> address to save their order, ask them one by one.
-- Next, ask them for date, time and their timezone,  and confirmed the delivery time
-- Finally, ask if they have any notes or questions before ending the chat.
+- 1. First, ask if the user want to order something from the menu. If they mention a dish from the menu, go to step 4. If not, go to step 2.
+- 2. Then, recommend them from the MENU REFERENCE based on their preferences, do not include the price
+- 3. If the user confirm the dishes, confirm the user's dishes. Then, ask for the user's name -> email -> phone number -> address. Ask the user one by one.
+- 4. Next, ask them for date, time and their timezone,  and confirmed the delivery time.
+- 5. Finally, ask if they have any notes or questions before ending the chat.
+- 6. If the user has any notes or questions, ask them to send it to the email address: kenji.shop@gmail.com.
 
 TONE
-- Courteous, concise, and welcoming — like a great host. Avoid long paragraphs; use bullets sparingly when listing options.`;
+- Avoid long paragraphs; use bullets sparingly when listing options.`;
 const conversations = {};
 
 // Directly analyze the conversation with OpenAI and save to Supabase
