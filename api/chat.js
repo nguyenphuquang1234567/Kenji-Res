@@ -50,14 +50,14 @@ HOUSE INFO
 - Currency: Show prices in USD with a leading $ (e.g., $12.90)
 
 MENU REFERENCE (use exactly when asked about items/prices)
-- Wagyu Steak — $68.90 — A5 Wagyu, yuzu kosho butter, black garlic glaze
-- Salmon Teriyaki — $32.90 — Pan-seared salmon, house teriyaki, shiso greens
-- Uni Truffle Udon — $34.90 — Fresh udon, uni cream, truffle aroma
-- Seaweed Salad — $14.90 — Wakame, sesame dressing, toasted nori
-- Matcha Tiramisu — $12.90 — Mascarpone, sponge, ceremonial matcha
-- Tonkotsu Ramen — $21.90 — Rich pork broth, chashu, ajitama, nori
-- Chicken Karaage — $17.90 — Crispy marinated chicken, lemon, yuzu mayo
-- Mochi Ice Cream — $11.90 — Soft mochi, vanilla gelato, kinako dust
+- Wagyu Steak — $68.90
+- Salmon Teriyaki — $32.90
+- Uni Truffle Udon — $34.90
+- Seaweed Salad — $14.90
+- Matcha Tiramisu — $12.90
+- Tonkotsu Ramen — $21.90
+- Chicken Karaage — $17.90
+- Mochi Ice Cream — $11.90
 - Featured/Omakase: If asked, explain it's the chef's curated selection.
 
 Conversation flow:
@@ -73,73 +73,108 @@ TONE
 - Avoid long paragraphs; use bullets sparingly when listing options.`;
 const conversations = {};
 
-// Function to get food image URL based on dish name
+// Remove invalid/empty tool_calls from messages to satisfy OpenAI schema
+function sanitizeMessages(messages) {
+  if (!Array.isArray(messages)) return [];
+  return messages.map((msg) => {
+    if (!msg || typeof msg !== 'object') return msg;
+    // Only assistant messages can have tool_calls; remove empty/invalid arrays
+    if (msg.role === 'assistant') {
+      if (!Array.isArray(msg.tool_calls) || (Array.isArray(msg.tool_calls) && msg.tool_calls.length === 0)) {
+        const { tool_calls, ...rest } = msg;
+        return rest;
+      }
+    } else if (msg.tool_calls !== undefined) {
+      // Strip tool_calls from non-assistant roles just in case
+      const { tool_calls, ...rest } = msg;
+      return rest;
+    }
+    return msg;
+  });
+}
+
+// Function to get food image URL and description based on dish name
 function getFoodImageUrl(dishName) {
-  const foodImages = {
-    'wagyu steak': 'images/wagyu_steak.png',
-    'salmon teriyaki': 'images/salmon_teriyaki.png',
-    'uni truffle udon': 'images/udon.png',
-    'seaweed salad': 'images/seaweed_salad.png',
-    'matcha tiramisu': 'images/matcha.png',
-    'tonkotsu ramen': 'images/tonkotsu_ramen.png',
-    'chicken karaage': 'images/chicken.png',
-    'mochi ice cream': 'images/mochi_ice_cream.png'
+  const foodData = {
+    'wagyu steak': {
+      image: 'images/wagyu_steak.png',
+      description: 'A5 Wagyu, yuzu kosho butter, black garlic glaze'
+    },
+    'salmon teriyaki': {
+      image: 'images/salmon_teriyaki.png',
+      description: 'Pan-seared salmon, house teriyaki, shiso greens'
+    },
+    'uni truffle udon': {
+      image: 'images/udon.png',
+      description: 'Fresh udon, uni cream, truffle aroma'
+    },
+    'seaweed salad': {
+      image: 'images/seaweed_salad.png',
+      description: 'Wakame, sesame dressing, toasted nori'
+    },
+    'matcha tiramisu': {
+      image: 'images/matcha.png',
+      description: 'Mascarpone, sponge, ceremonial matcha'
+    },
+    'tonkotsu ramen': {
+      image: 'images/tonkotsu_ramen.png',
+      description: 'Rich pork broth, chashu, ajitama, nori'
+    },
+    'chicken karaage': {
+      image: 'images/chicken.png',
+      description: 'Crispy marinated chicken, lemon, yuzu mayo'
+    },
+    'mochi ice cream': {
+      image: 'images/mochi_ice_cream.png',
+      description: 'Soft mochi, vanilla gelato, kinako dust'
+    }
   };
   
   const normalizedName = dishName.toLowerCase().trim();
-  return foodImages[normalizedName] || null;
+  return foodData[normalizedName] || null;
 }
 
-// Function to check if user is requesting to see a dish image
-function checkForDishImageRequest(message) {
-  const lowerMessage = message.toLowerCase();
-  
-  // Keywords that indicate user wants to see an image
-  const imageKeywords = [
-    'show me', 'show', 'see', 'look at', 'picture', 'image', 'photo', 'view', 'know',
-    'what does', 'how does', 'tell me about', 'more about', 'details about', 'detail on',
-    'detail', 'about', 'tell me', 'describe', 'explain', 'more', 'how', 'what', 'explore', 'tell'
-  ];
-  
-  // Menu items with descriptions
-  const menuItems = {
-    'wagyu steak': 'A5 Wagyu, yuzu kosho butter, black garlic glaze',
-    'salmon teriyaki': 'Pan-seared salmon, house teriyaki, shiso greens',
-    'uni truffle udon': 'Fresh udon, uni cream, truffle aroma',
-    'seaweed salad': 'Wakame, sesame dressing, toasted nori',
-    'matcha tiramisu': 'Mascarpone, sponge, ceremonial matcha',
-    'tonkotsu ramen': 'Rich pork broth, chashu, ajitama, nori',
-    'chicken karaage': 'Crispy marinated chicken, lemon, yuzu mayo',
-    'mochi ice cream': 'Soft mochi, vanilla gelato, kinako dust'
-  };
-  
-  // Check if message contains image keywords and a dish name
-  for (const [dishName, description] of Object.entries(menuItems)) {
-    const dishWords = dishName.toLowerCase().split(' ');
-    const messageWords = lowerMessage.split(' ');
+
+
+// Format order time to "YYYY-MM-DD HH:MM:SS GMT+HH:MM"
+function formatOrderTime(orderTimeRaw) {
+  if (!orderTimeRaw || typeof orderTimeRaw !== 'string') return '';
+  try {
+    const parsed = new Date(orderTimeRaw);
+    if (isNaN(parsed.getTime())) return orderTimeRaw;
     
-    // Check if message contains image keywords
-    const hasImageKeyword = imageKeywords.some(keyword => lowerMessage.includes(keyword));
+    // Force the year to be current year
+    const currentYear = new Date().getFullYear();
+    parsed.setFullYear(currentYear);
     
-    // Check if message contains dish name (with fuzzy matching)
-    const hasDishName = dishWords.every(word => 
-      messageWords.some(msgWord => 
-        msgWord.includes(word) || word.includes(msgWord) || 
-        (word.length > 3 && msgWord.length > 3 && 
-         (msgWord.includes(word.substring(0, word.length - 1)) || 
-          word.includes(msgWord.substring(0, msgWord.length - 1))))
-      )
-    );
-    
-    if (hasDishName && hasImageKeyword) {
-      return {
-        dish_name: dishName,
-        description: description
-      };
+    let m = orderTimeRaw.match(/GMT([+-])(\d{2}):?(\d{2})/i) || orderTimeRaw.match(/UTC([+-])(\d{2}):?(\d{2})/i) || orderTimeRaw.match(/([+-])(\d{2}):?(\d{2})/);
+    let displayOffsetMin;
+    if (m) {
+      const sign = m[1] === '-' ? -1 : 1;
+      const oh = parseInt(m[2], 10) || 0;
+      const om = parseInt(m[3], 10) || 0;
+      displayOffsetMin = sign * (oh * 60 + om);
+    } else {
+      displayOffsetMin = -parsed.getTimezoneOffset();
     }
+    const utcMs = parsed.getTime() + parsed.getTimezoneOffset() * 60000;
+    const targetMs = utcMs + displayOffsetMin * 60000;
+    const d = new Date(targetMs);
+    const pad = (n) => String(n).padStart(2, '0');
+    const yyyy = d.getUTCFullYear();
+    const mm = pad(d.getUTCMonth() + 1);
+    const dd = pad(d.getUTCDate());
+    const HH = pad(d.getUTCHours());
+    const MM = pad(d.getUTCMinutes());
+    const SS = pad(d.getUTCSeconds());
+    const s = displayOffsetMin >= 0 ? '+' : '-';
+    const a = Math.abs(displayOffsetMin);
+    const oh = pad(Math.floor(a / 60));
+    const om = pad(a % 60);
+    return `${yyyy}-${mm}-${dd} ${HH}:${MM}:${SS} GMT${s}${oh}:${om}`;
+  } catch {
+    return orderTimeRaw;
   }
-  
-  return null;
 }
 
 // Directly analyze the conversation with OpenAI and save to Supabase
@@ -179,47 +214,6 @@ async function analyzeConversationDirect(sessionId, messages) {
     // Lead quality rule override
     const hasContacts = (extracted.customerEmail && extracted.customerEmail.trim()) || (extracted.customerPhone && extracted.customerPhone.trim());
     const leadQuality = hasContacts ? 'good' : 'spam';
-
-    // Format order time to "YYYY-MM-DD HH:MM:SS GMT+HH:MM"
-    function formatOrderTime(orderTimeRaw) {
-      if (!orderTimeRaw || typeof orderTimeRaw !== 'string') return '';
-      try {
-        const parsed = new Date(orderTimeRaw);
-        if (isNaN(parsed.getTime())) return orderTimeRaw;
-        
-        // Force the year to be current year
-        const currentYear = new Date().getFullYear();
-        parsed.setFullYear(currentYear);
-        
-        let m = orderTimeRaw.match(/GMT([+-])(\d{2}):?(\d{2})/i) || orderTimeRaw.match(/UTC([+-])(\d{2}):?(\d{2})/i) || orderTimeRaw.match(/([+-])(\d{2}):?(\d{2})/);
-        let displayOffsetMin;
-        if (m) {
-          const sign = m[1] === '-' ? -1 : 1;
-          const oh = parseInt(m[2], 10) || 0;
-          const om = parseInt(m[3], 10) || 0;
-          displayOffsetMin = sign * (oh * 60 + om);
-        } else {
-          displayOffsetMin = -parsed.getTimezoneOffset();
-        }
-        const utcMs = parsed.getTime() + parsed.getTimezoneOffset() * 60000;
-        const targetMs = utcMs + displayOffsetMin * 60000;
-        const d = new Date(targetMs);
-        const pad = (n) => String(n).padStart(2, '0');
-        const yyyy = d.getUTCFullYear();
-        const mm = pad(d.getUTCMonth() + 1);
-        const dd = pad(d.getUTCDate());
-        const HH = pad(d.getUTCHours());
-        const MM = pad(d.getUTCMinutes());
-        const SS = pad(d.getUTCSeconds());
-        const s = displayOffsetMin >= 0 ? '+' : '-';
-        const a = Math.abs(displayOffsetMin);
-        const oh = pad(Math.floor(a / 60));
-        const om = pad(a % 60);
-        return `${yyyy}-${mm}-${dd} ${HH}:${MM}:${SS} GMT${s}${oh}:${om}`;
-      } catch {
-        return orderTimeRaw;
-      }
-    }
 
     const updateData = {
       customer_name: extracted.customerName || '',
@@ -280,7 +274,7 @@ module.exports = async (req, res) => {
         .eq('conversation_id', sessionId)
         .single();
       if (data && data.messages) {
-        conversations[sessionId] = data.messages;
+        conversations[sessionId] = sanitizeMessages(data.messages);
       } else {
         conversations[sessionId] = [];
         conversations[sessionId].push({ role: 'system', content: DEFAULT_SYSTEM_PROMPT });
@@ -293,79 +287,34 @@ module.exports = async (req, res) => {
   conversations[sessionId].push({ role: 'user', content: message });
 
   try {
-    // Check if user is asking to see a specific dish image
-    const dishImageRequest = checkForDishImageRequest(message);
-    
-    if (dishImageRequest) {
-      // Handle dish image request directly without calling model
-      const imageUrl = getFoodImageUrl(dishImageRequest.dish_name);
-      if (!imageUrl) {
-        return res.status(400).json({ error: 'Image not found for this dish' });
-      }
-      
-      const toolResultsForResponse = [{
-        dish_name: dishImageRequest.dish_name,
-        description: dishImageRequest.description,
-        image_url: imageUrl
-      }];
-      
-      const aiMessage = `Here's the ${dishImageRequest.dish_name}: ${dishImageRequest.description}`;
-      
-      // Add to conversation history
-      conversations[sessionId].push({ 
-        role: 'assistant', 
-        content: aiMessage,
-        tool_calls: [{
-          id: 'direct_call',
-          type: 'function',
-          function: {
-            name: 'show_food_image',
-            arguments: JSON.stringify({
-              dish_name: dishImageRequest.dish_name,
-              description: dishImageRequest.description
-            })
-          }
-        }]
-      });
-      
-      // Add tool response message
-      conversations[sessionId].push({
-        role: 'tool',
-        tool_call_id: 'direct_call',
-        name: 'show_food_image',
-        content: JSON.stringify({
-          dish_name: dishImageRequest.dish_name,
-          description: dishImageRequest.description,
-          image_url: getFoodImageUrl(dishImageRequest.dish_name)
-        })
-      });
-      
-      // Save to database and analyze
-      try {
-        await supabase.from('restaurant').upsert([
-          {
-            conversation_id: sessionId,
-            messages: conversations[sessionId],
-          }
-        ], { onConflict: ['conversation_id'] });
-      } catch (dbError) {
-        console.error('Supabase DB error:', dbError.message);
-      }
-      
-      await analyzeConversationDirect(sessionId, conversations[sessionId]);
-      
-      return res.json({ 
-        response: aiMessage,
-        tool_results: toolResultsForResponse
-      });
-    }
-    
-    // Normal conversation - call model
+    // Call model with tools available
+    const sanitizedMessages = sanitizeMessages(conversations[sessionId] || []);
+
     const response = await axios.post(
       'https://api.openai.com/v1/chat/completions',
       {
         model: 'gpt-5-nano',
-        messages: conversations[sessionId],
+        messages: sanitizedMessages,
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'show_food_image',
+              description: 'Show an image of a specific food dish when the user asks to see it or learn more about it',
+              parameters: {
+                type: 'object',
+                properties: {
+                  dish_name: {
+                    type: 'string',
+                    description: 'The name of the dish to show'
+                  }
+                },
+                required: ['dish_name']
+              }
+            }
+          }
+        ],
+        tool_choice: 'auto'
       },
       {
         headers: {
@@ -375,14 +324,71 @@ module.exports = async (req, res) => {
       }
     );
     
-    const aiMessage = response.data.choices[0]?.message?.content || 'Sorry, I encountered an error. Please try again.';
-    conversations[sessionId].push({ role: 'assistant', content: aiMessage });
+    let aiMessage = response.data.choices[0]?.message?.content || '';
+    const toolCalls = response.data.choices[0]?.message?.tool_calls || [];
+    
+    // If tool was called but content is empty or error-y, synthesize a friendly message
+    if (toolCalls.length > 0 && (!aiMessage || /^sorry, i encountered/i.test(aiMessage))) {
+      const firstTool = toolCalls.find(t => t?.function?.name === 'show_food_image');
+      try {
+        if (firstTool) {
+          const args = JSON.parse(firstTool.function.arguments || '{}');
+          const foodData = getFoodImageUrl(args.dish_name || '');
+          if (foodData) {
+            aiMessage = `Here\'s the ${args.dish_name}: ${foodData.description}`;
+          }
+        }
+      } catch {}
+    }
+
+    // Add assistant message to conversation (only include tool_calls when present)
+    if (toolCalls.length > 0) {
+      conversations[sessionId].push({ role: 'assistant', content: aiMessage, tool_calls: toolCalls });
+    } else {
+      // Ensure there is always a non-empty assistant content
+      conversations[sessionId].push({ role: 'assistant', content: aiMessage || 'Got it.' });
+    }
+    
+    // Handle tool calls if any
+    let toolResultsForResponse = null;
+    if (toolCalls.length > 0) {
+      toolResultsForResponse = [];
+      
+      for (const toolCall of toolCalls) {
+        if (toolCall.function.name === 'show_food_image') {
+          const args = JSON.parse(toolCall.function.arguments);
+          const foodData = getFoodImageUrl(args.dish_name);
+          
+          if (foodData) {
+            toolResultsForResponse.push({
+              dish_name: args.dish_name,
+              description: foodData.description,
+              image_url: foodData.image
+            });
+            
+            // Add tool response to conversation
+            conversations[sessionId].push({
+              role: 'tool',
+              tool_call_id: toolCall.id,
+              name: 'show_food_image',
+              content: JSON.stringify({
+                dish_name: args.dish_name,
+                description: foodData.description,
+                image_url: foodData.image
+              })
+            });
+          }
+        }
+      }
+    }
     
     try {
+      // Sanitize before saving to DB to avoid persisting empty tool_calls arrays
+      const messagesToSave = sanitizeMessages(conversations[sessionId] || []);
       await supabase.from('restaurant').upsert([
         {
           conversation_id: sessionId,
-          messages: conversations[sessionId],
+          messages: messagesToSave,
         }
       ], { onConflict: ['conversation_id'] });
     } catch (dbError) {
@@ -394,7 +400,7 @@ module.exports = async (req, res) => {
 
     res.json({ 
       response: aiMessage,
-      tool_results: null
+      tool_results: toolResultsForResponse
     });
   } catch (error) {
     console.error('OpenAI API error:', error.response?.data || error.message);
