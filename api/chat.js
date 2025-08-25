@@ -97,7 +97,8 @@ function checkForDishImageRequest(message) {
   // Keywords that indicate user wants to see an image
   const imageKeywords = [
     'show me', 'show', 'see', 'look at', 'picture', 'image', 'photo', 'view', 'know',
-    'what does', 'how does', 'tell me about', 'more about', 'details about'
+    'what does', 'how does', 'tell me about', 'more about', 'details about', 'detail on',
+    'detail', 'about', 'tell me', 'describe', 'explain'
   ];
   
   // Menu items with descriptions
