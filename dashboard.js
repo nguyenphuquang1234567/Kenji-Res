@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const conversationList = document.getElementById('conversation-list');
   const messagesContainer = document.getElementById('messages-container');
   let conversations = [];
+  let currentFilter = 'all'; // 'all' | 'good' | 'ok' | 'spam'
   const BOT_ICON_PATH = 'images/logo.png';
 
   // Helper: render lead quality summary cards
@@ -44,13 +45,255 @@ document.addEventListener('DOMContentLoaded', () => {
 
     summary.innerHTML = `
       <h3 class="text-lg font-semibold mb-3 text-gray-800 text-center">Lead Quality Breakdown (analyzed: ${total})</h3>
-      <div class="flex flex-col md:flex-row gap-3">
-        ${card('Good', counts.good, pct(counts.good), { text: 'text-green-700', bg: 'bg-green-500', border: 'border-green-100' })}
-        ${card('OK', counts.ok, pct(counts.ok), { text: 'text-yellow-700', bg: 'bg-yellow-400', border: 'border-yellow-100' })}
-        ${card('Spam', counts.spam, pct(counts.spam), { text: 'text-red-700', bg: 'bg-red-500', border: 'border-red-100' })}
+      <div class="flex flex-col md:flex-row gap-3" id="lq-cards">
+        <div data-quality="good" class="cursor-pointer transition transform hover:-translate-y-0.5 active:scale-95">${card('Good', counts.good, pct(counts.good), { text: 'text-green-700', bg: 'bg-green-500', border: 'border-green-100' })}</div>
+        <div data-quality="ok" class="cursor-pointer transition transform hover:-translate-y-0.5 active:scale-95">${card('OK', counts.ok, pct(counts.ok), { text: 'text-yellow-700', bg: 'bg-yellow-400', border: 'border-yellow-100' })}</div>
+        <div data-quality="spam" class="cursor-pointer transition transform hover:-translate-y-0.5 active:scale-95">${card('Spam', counts.spam, pct(counts.spam), { text: 'text-red-700', bg: 'bg-red-500', border: 'border-red-100' })}</div>
+      </div>
+      <div class="mt-2 text-center">
+        <button id="lq-all" class="text-sm text-blue-700 hover:underline">Show all</button>
+      </div>
+      <div class="mt-3 flex justify-center">
+        <span id="lq-badge" class="hidden px-3 py-1 rounded-full text-xs font-medium border"></span>
       </div>`;
 
     parentEl.appendChild(summary);
+    // Filter interactions
+    const setBadge = () => {
+      const badge = summary.querySelector('#lq-badge');
+      if (!badge) return;
+      if (currentFilter === 'all') {
+        badge.className = 'hidden px-3 py-1 rounded-full text-xs font-medium border';
+        badge.textContent = '';
+        return;
+      }
+      const styles = {
+        good: 'bg-green-100 text-green-800 border-green-200',
+        ok: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+        spam: 'bg-red-100 text-red-800 border-red-200'
+      };
+      badge.className = `px-3 py-1 rounded-full text-xs font-medium border ${styles[currentFilter] || 'bg-gray-100 text-gray-800 border-gray-200'}`;
+      badge.textContent = `Filter: ${currentFilter.toUpperCase()}`;
+    };
+
+    const highlight = () => {
+      summary.querySelectorAll('[data-quality] .rounded-xl').forEach(el => {
+        el.classList.remove('ring-2','ring-offset-2');
+      });
+      if (currentFilter !== 'all') {
+        const active = summary.querySelector(`[data-quality="${currentFilter}"] .rounded-xl`);
+        if (active) active.classList.add('ring-2','ring-offset-2');
+      }
+    };
+    const applyFilterAndRender = () => {
+      const listContainer = document.getElementById('conv-list');
+      if (!listContainer) return;
+      listContainer.innerHTML = '';
+      const source = currentFilter === 'all' ? items : items.filter(c => (c.lead_quality || '').toLowerCase() === currentFilter);
+      renderConversationItems(listContainer, source);
+      highlight();
+      setBadge();
+    };
+    summary.querySelectorAll('[data-quality]').forEach(wrapper => {
+      wrapper.addEventListener('click', () => {
+        const q = wrapper.getAttribute('data-quality');
+        currentFilter = (currentFilter === q) ? 'all' : q;
+        applyFilterAndRender();
+        // click feedback animation
+        const cardEl = wrapper.querySelector('.rounded-xl');
+        if (cardEl) {
+          cardEl.classList.add('shadow-lg','scale-[0.98]');
+          setTimeout(() => {
+            cardEl.classList.remove('shadow-lg','scale-[0.98]');
+          }, 180);
+        }
+      });
+    });
+    const btnAll = summary.querySelector('#lq-all');
+    if (btnAll) btnAll.addEventListener('click', () => { currentFilter = 'all'; applyFilterAndRender(); });
+    highlight();
+    setBadge();
+  }
+
+  // Render Top 5 ordered dishes bar chart
+  function renderTopDishesChart(parentEl, items) {
+    const container = document.createElement('div');
+    container.className = 'mb-6';
+
+    // Aggregate order_item counts (case-insensitive, trimmed)
+    const countsMap = new Map();
+    items.forEach(c => {
+      const raw = (c.order_item || '').toString().trim();
+      if (!raw) return;
+      const key = raw.toLowerCase();
+      const normalized = (
+        key.includes('wagyu') ? 'Wagyu Steak' :
+        key.includes('salmon') ? 'Salmon Teriyaki' :
+        key.includes('udon') || key.includes('uni') ? 'Uni Truffle Udon' :
+        key.includes('seaweed') ? 'Seaweed Salad' :
+        key.includes('matcha') ? 'Matcha Tiramisu' :
+        key.includes('ramen') ? 'Tonkotsu Ramen' :
+        key.includes('karaage') || key.includes('chicken') ? 'Chicken Karaage' :
+        key.includes('mochi') ? 'Mochi Ice Cream' :
+        c.order_item // fallback original
+      );
+      countsMap.set(normalized, (countsMap.get(normalized) || 0) + 1);
+    });
+
+    const counts = Array.from(countsMap.entries())
+      .sort((a,b) => b[1]-a[1])
+      .slice(0,5);
+
+    if (counts.length === 0) {
+      container.innerHTML = '<div class="rounded-xl border p-4 bg-white text-sm text-gray-600 text-center">No order data yet.</div>';
+      parentEl.appendChild(container);
+      return;
+    }
+
+    const max = Math.max(...counts.map(([_,n]) => n));
+    const pctOfMax = (n) => Math.round((n / max) * 100);
+
+    // Gradient color per dish + image path (from images/)
+    const styleMap = {
+      'Wagyu Steak': { grad: 'from-rose-500 to-red-600', img: 'images/wagyu_steak.png' },
+      'Salmon Teriyaki': { grad: 'from-orange-400 to-amber-500', img: 'images/salmon_teriyaki.png' },
+      'Uni Truffle Udon': { grad: 'from-yellow-400 to-amber-400', img: 'images/udon.png' },
+      'Seaweed Salad': { grad: 'from-emerald-400 to-green-500', img: 'images/seaweed_salad.png' },
+      'Matcha Tiramisu': { grad: 'from-lime-400 to-emerald-500', img: 'images/matcha.png' },
+      'Tonkotsu Ramen': { grad: 'from-pink-400 to-rose-500', img: 'images/tonkotsu_ramen.png' },
+      'Chicken Karaage': { grad: 'from-amber-400 to-orange-500', img: 'images/chicken.png' },
+      'Mochi Ice Cream': { grad: 'from-fuchsia-400 to-pink-500', img: 'images/mochi_ice_cream.png' }
+    };
+
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = `
+      <h3 class="text-lg font-semibold mb-3 text-gray-800 text-center">Top 5 Ordered Dishes</h3>
+      <div class="rounded-xl border bg-white p-4 flex flex-col gap-4" id="top-dishes-rows"></div>`;
+    container.appendChild(wrapper);
+    parentEl.appendChild(container);
+
+    const rowsEl = wrapper.querySelector('#top-dishes-rows');
+
+    counts.forEach(([name, n]) => {
+      const { grad, img } = styleMap[name] || { grad: 'from-red-400 to-red-500', img: 'images/logo.png' };
+      const row = document.createElement('div');
+      row.className = 'flex items-center gap-4';
+
+      const label = document.createElement('div');
+      label.className = 'w-56 shrink-0 text-sm text-gray-800 flex items-center gap-2';
+      label.innerHTML = `<img src="${img}" alt="${name}" class="w-6 h-6 rounded object-cover border border-gray-200" /><span>${name}</span>`;
+
+      const barTrack = document.createElement('div');
+      barTrack.className = 'relative flex-1 h-5 rounded-full bg-gray-100 overflow-hidden border border-gray-200';
+
+      const bar = document.createElement('div');
+      bar.className = `absolute left-0 top-0 h-full bg-gradient-to-r ${grad}`;
+      bar.style.width = '0%';
+      bar.style.transition = 'width 600ms cubic-bezier(0.16, 1, 0.3, 1)';
+
+      const badge = document.createElement('span');
+      badge.className = 'ml-2 w-14 text-right text-sm text-gray-700 tabular-nums';
+      badge.textContent = `${n}`;
+
+      barTrack.appendChild(bar);
+      row.appendChild(label);
+      row.appendChild(barTrack);
+      row.appendChild(badge);
+      rowsEl.appendChild(row);
+
+      // Animate in next frame
+      requestAnimationFrame(() => {
+        bar.style.width = pctOfMax(n) + '%';
+      });
+    });
+  }
+
+  // Render conversation items into a target container
+  function renderConversationItems(containerEl, items) {
+    const list = document.createElement('div');
+    list.className = 'flex flex-col gap-2';
+    items.forEach(conv => {
+      const item = document.createElement('div');
+      item.className = 'flex items-center justify-between w-full px-4 py-3 rounded-lg border border-gray-200 bg-white hover:bg-blue-50 shadow transition';
+      
+      // Left side with conversation info
+      const leftSide = document.createElement('div');
+      leftSide.className = 'flex-1';
+      
+      const infoBtn = document.createElement('button');
+      infoBtn.className = 'text-left w-full';
+      const date = new Date(conv.created_at || Date.now());
+      const custName = (conv.customer_name && String(conv.customer_name).trim()) ? conv.customer_name : 'N/A';
+      const custPhone = (conv.customer_phone && String(conv.customer_phone).trim()) ? conv.customer_phone : 'N/A';
+      infoBtn.innerHTML = `
+        <span class="font-medium text-gray-800">${custName}</span>
+        <span class="text-sm text-gray-600 ml-2">• ${custPhone}</span>
+        <span class="text-xs text-gray-500 ml-2">${date.toLocaleString()}</span>
+      `;
+      infoBtn.onclick = () => loadMessages(conv.conversation_id);
+      leftSide.appendChild(infoBtn);
+      
+      // Lead quality indicator
+      if (conv.lead_quality) {
+        const qualityBadge = document.createElement('span');
+        const qualityColors = {
+          'good': 'bg-green-100 text-green-800',
+          'ok': 'bg-yellow-100 text-yellow-800',
+          'spam': 'bg-red-100 text-red-800'
+        };
+        qualityBadge.className = `ml-2 px-2 py-1 text-xs rounded-full ${qualityColors[conv.lead_quality] || 'bg-gray-100 text-gray-800'}`;
+        qualityBadge.textContent = conv.lead_quality.toUpperCase();
+        leftSide.appendChild(qualityBadge);
+      }
+      
+      item.appendChild(leftSide);
+
+      // Right side with action buttons
+      const rightSide = document.createElement('div');
+      rightSide.className = 'flex items-center gap-2';
+      
+      // Analyze button
+      const analyzeBtn = document.createElement('button');
+      analyzeBtn.className = 'p-2 rounded-full hover:bg-blue-100 text-blue-600 transition flex items-center';
+      analyzeBtn.innerHTML = `<svg xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\" stroke-width=\"1.5\" stroke=\"currentColor\" class=\"w-4 h-4\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423L16.5 15.75l.394 1.183a2.25 2.25 0 001.423 1.423L19.5 18.75l-1.183.394a2.25 2.25 0 00-1.423 1.423z\" /></svg>`;
+      analyzeBtn.title = 'Analyze conversation';
+      analyzeBtn.onclick = async (e) => {
+        e.stopPropagation();
+        await analyzeConversation(conv.conversation_id);
+      };
+      rightSide.appendChild(analyzeBtn);
+      
+      // View analysis button (if already analyzed)
+      if (conv.analyzed_at) {
+        const viewAnalysisBtn = document.createElement('button');
+        viewAnalysisBtn.className = 'p-2 rounded-full hover:bg-green-100 text-green-600 transition flex items-center';
+        viewAnalysisBtn.innerHTML = `<svg xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\" stroke-width=\"1.5\" stroke=\"currentColor\" class=\"w-4 h-4\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.639 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.639 0-8.573-3.007-9.963-7.178z\" /><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M15 12a3 3 0 11-6 0 3 3 0 016 0z\" /></svg>`;
+        viewAnalysisBtn.title = 'View analysis';
+        viewAnalysisBtn.onclick = async (e) => {
+          e.stopPropagation();
+          await showAnalysis(conv);
+        };
+        rightSide.appendChild(viewAnalysisBtn);
+      }
+
+      // Delete button
+      const delBtn = document.createElement('button');
+      delBtn.className = 'p-2 rounded-full hover:bg-red-100 text-red-600 transition flex items-center';
+      delBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>`;
+      delBtn.title = 'Delete conversation';
+      delBtn.onclick = async (e) => {
+        e.stopPropagation();
+        if (confirm('Are you sure you want to delete this conversation?')) {
+          await deleteConversation(conv.conversation_id);
+        }
+      };
+      rightSide.appendChild(delBtn);
+      
+      item.appendChild(rightSide);
+
+      list.appendChild(item);
+    });
+    containerEl.appendChild(list);
   }
 
   // Fetch and display all conversations
@@ -67,95 +310,15 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      // Lead quality summary at the top
+      // Lead quality summary & Top dishes at the top
       renderLeadQualitySummary(conversationList, conversations);
+      renderTopDishesChart(conversationList, conversations);
 
-      const list = document.createElement('div');
-      list.className = 'flex flex-col gap-2';
-      conversations.forEach(conv => {
-        const item = document.createElement('div');
-        item.className = 'flex items-center justify-between w-full px-4 py-3 rounded-lg border border-gray-200 bg-white hover:bg-blue-50 shadow transition';
-        
-        // Left side with conversation info
-        const leftSide = document.createElement('div');
-        leftSide.className = 'flex-1';
-        
-        const infoBtn = document.createElement('button');
-        infoBtn.className = 'text-left w-full';
-        const date = new Date(conv.created_at || Date.now());
-        const custName = (conv.customer_name && String(conv.customer_name).trim()) ? conv.customer_name : 'N/A';
-        const custPhone = (conv.customer_phone && String(conv.customer_phone).trim()) ? conv.customer_phone : 'N/A';
-        infoBtn.innerHTML = `
-          <span class="font-medium text-gray-800">${custName}</span>
-          <span class="text-sm text-gray-600 ml-2">• ${custPhone}</span>
-          <span class="text-xs text-gray-500 ml-2">${date.toLocaleString()}</span>
-        `;
-        infoBtn.onclick = () => loadMessages(conv.conversation_id);
-        leftSide.appendChild(infoBtn);
-        
-        // Lead quality indicator
-        if (conv.lead_quality) {
-          const qualityBadge = document.createElement('span');
-          const qualityColors = {
-            'good': 'bg-green-100 text-green-800',
-            'ok': 'bg-yellow-100 text-yellow-800',
-            'spam': 'bg-red-100 text-red-800'
-          };
-          qualityBadge.className = `ml-2 px-2 py-1 text-xs rounded-full ${qualityColors[conv.lead_quality] || 'bg-gray-100 text-gray-800'}`;
-          qualityBadge.textContent = conv.lead_quality.toUpperCase();
-          leftSide.appendChild(qualityBadge);
-        }
-        
-        item.appendChild(leftSide);
-
-        // Right side with action buttons
-        const rightSide = document.createElement('div');
-        rightSide.className = 'flex items-center gap-2';
-        
-        // (Removed) View conversation button per user's request
-        
-        // Analyze button
-        const analyzeBtn = document.createElement('button');
-        analyzeBtn.className = 'p-2 rounded-full hover:bg-blue-100 text-blue-600 transition flex items-center';
-        analyzeBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423L16.5 15.75l.394 1.183a2.25 2.25 0 001.423 1.423L19.5 18.75l-1.183.394a2.25 2.25 0 00-1.423 1.423z" /></svg>`;
-        analyzeBtn.title = conv.analyzed_at ? 'Re-analyze conversation' : 'Analyze conversation';
-        analyzeBtn.onclick = async (e) => {
-          e.stopPropagation();
-          await analyzeConversation(conv.conversation_id);
-        };
-        rightSide.appendChild(analyzeBtn);
-        
-        // View analysis button (if already analyzed)
-        if (conv.analyzed_at) {
-          const viewAnalysisBtn = document.createElement('button');
-          viewAnalysisBtn.className = 'p-2 rounded-full hover:bg-green-100 text-green-600 transition flex items-center';
-          viewAnalysisBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.639 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.639 0-8.573-3.007-9.963-7.178z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>`;
-          viewAnalysisBtn.title = 'View analysis';
-          viewAnalysisBtn.onclick = async (e) => {
-            e.stopPropagation();
-            await showAnalysis(conv);
-          };
-          rightSide.appendChild(viewAnalysisBtn);
-        }
-
-        // Delete button
-        const delBtn = document.createElement('button');
-        delBtn.className = 'p-2 rounded-full hover:bg-red-100 text-red-600 transition flex items-center';
-        delBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>`;
-        delBtn.title = 'Delete conversation';
-        delBtn.onclick = async (e) => {
-          e.stopPropagation();
-          if (confirm('Are you sure you want to delete this conversation?')) {
-            await deleteConversation(conv.conversation_id);
-          }
-        };
-        rightSide.appendChild(delBtn);
-        
-        item.appendChild(rightSide);
-
-        list.appendChild(item);
-      });
-      conversationList.appendChild(list);
+      const listContainer = document.createElement('div');
+      listContainer.id = 'conv-list';
+      conversationList.appendChild(listContainer);
+      const initial = currentFilter === 'all' ? conversations : conversations.filter(c => (c.lead_quality || '').toLowerCase() === currentFilter);
+      renderConversationItems(listContainer, initial);
     } catch (err) {
       conversationList.innerHTML += '<p class="text-red-500 text-center">Error loading conversations.</p>';
     }
