@@ -3,6 +3,11 @@ const axios = require('axios');
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_KEY;
+
+if (!SUPABASE_URL || !SUPABASE_KEY) {
+  console.error('Missing Supabase environment variables');
+}
+
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Direct analysis system prompt for extracting customer info
@@ -239,6 +244,12 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // Check if OpenAI API key is available
+  if (!process.env.OPENAI_API_KEY) {
+    console.error('Missing OpenAI API key');
+    return res.status(500).json({ error: 'Server configuration error' });
+  }
+
   const { message, sessionId } = req.body;
   if (!message || !sessionId) {
     return res.status(400).json({ error: 'Missing message or sessionId' });
@@ -271,10 +282,15 @@ module.exports = async (req, res) => {
     
     if (dishImageRequest) {
       // Handle dish image request directly without calling model
+      const imageUrl = getFoodImageUrl(dishImageRequest.dish_name);
+      if (!imageUrl) {
+        return res.status(400).json({ error: 'Image not found for this dish' });
+      }
+      
       const toolResultsForResponse = [{
         dish_name: dishImageRequest.dish_name,
         description: dishImageRequest.description,
-        image_url: getFoodImageUrl(dishImageRequest.dish_name)
+        image_url: imageUrl
       }];
       
       const aiMessage = `Here's the ${dishImageRequest.dish_name}: ${dishImageRequest.description}`;
@@ -343,7 +359,7 @@ module.exports = async (req, res) => {
       }
     );
     
-    const aiMessage = response.data.choices[0].message.content;
+    const aiMessage = response.data.choices[0]?.message?.content || 'Sorry, I encountered an error. Please try again.';
     conversations[sessionId].push({ role: 'assistant', content: aiMessage });
     
     try {
