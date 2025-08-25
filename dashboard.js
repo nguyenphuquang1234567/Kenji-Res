@@ -43,18 +43,44 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    const goodPct = Math.round((counts.good / total) * 100);
+    const okPct = Math.round((counts.ok / total) * 100);
+    const spamPct = Math.round((counts.spam / total) * 100);
     summary.innerHTML = `
-      <h3 class="text-lg font-semibold mb-3 text-gray-800 text-center">Lead Quality Breakdown (analyzed: ${total})</h3>
-      <div class="flex flex-col md:flex-row gap-3" id="lq-cards">
-        <div data-quality="good" class="cursor-pointer transition transform hover:-translate-y-0.5 active:scale-95">${card('Good', counts.good, pct(counts.good), { text: 'text-green-700', bg: 'bg-green-500', border: 'border-green-100' })}</div>
-        <div data-quality="ok" class="cursor-pointer transition transform hover:-translate-y-0.5 active:scale-95">${card('OK', counts.ok, pct(counts.ok), { text: 'text-yellow-700', bg: 'bg-yellow-400', border: 'border-yellow-100' })}</div>
-        <div data-quality="spam" class="cursor-pointer transition transform hover:-translate-y-0.5 active:scale-95">${card('Spam', counts.spam, pct(counts.spam), { text: 'text-red-700', bg: 'bg-red-500', border: 'border-red-100' })}</div>
-      </div>
-      <div class="mt-2 text-center">
-        <button id="lq-all" class="text-sm text-blue-700 hover:underline">Show all</button>
-      </div>
-      <div class="mt-3 flex justify-center">
-        <span id="lq-badge" class="hidden px-3 py-1 rounded-full text-xs font-medium border"></span>
+      <div class="rounded-xl border bg-white p-4">
+        <div class="text-lg font-semibold mb-3 text-gray-800 text-center">Lead Quality Distribution (analyzed: ${total})</div>
+        <div id="lq-bars" class="flex flex-col gap-2 mb-3">
+          <div class="flex items-center gap-3">
+            <div class="w-16 text-xs font-medium text-green-700">Good</div>
+            <div class="flex-1 h-4 rounded-full bg-gray-100 overflow-hidden border border-gray-200">
+              <div data-quality="good" class="h-full bg-green-500 cursor-pointer" style="width:${goodPct}%"></div>
+            </div>
+            <div class="w-16 text-right text-xs text-gray-600">${goodPct}% (${counts.good})</div>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="w-16 text-xs font-medium text-yellow-700">OK</div>
+            <div class="flex-1 h-4 rounded-full bg-gray-100 overflow-hidden border border-gray-200">
+              <div data-quality="ok" class="h-full bg-yellow-400 cursor-pointer" style="width:${okPct}%"></div>
+            </div>
+            <div class="w-16 text-right text-xs text-gray-600">${okPct}% (${counts.ok})</div>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="w-16 text-xs font-medium text-red-700">Spam</div>
+            <div class="flex-1 h-4 rounded-full bg-gray-100 overflow-hidden border border-gray-200">
+              <div data-quality="spam" class="h-full bg-red-500 cursor-pointer" style="width:${spamPct}%"></div>
+            </div>
+            <div class="w-16 text-right text-xs text-gray-600">${spamPct}% (${counts.spam})</div>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-center justify-center gap-2" id="lq-cards">
+          <button data-quality="good" class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200 transition hover:-translate-y-0.5 active:scale-95">Good ${goodPct}% (${counts.good})</button>
+          <button data-quality="ok" class="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200 transition hover:-translate-y-0.5 active:scale-95">OK ${okPct}% (${counts.ok})</button>
+          <button data-quality="spam" class="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200 transition hover:-translate-y-0.5 active:scale-95">Spam ${spamPct}% (${counts.spam})</button>
+          <button id="lq-all" class="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200 hover:underline">Show all</button>
+        </div>
+        <div class="mt-3 flex justify-center">
+          <span id="lq-badge" class="hidden px-3 py-1 rounded-full text-xs font-medium border"></span>
+        </div>
       </div>`;
 
     parentEl.appendChild(summary);
@@ -77,11 +103,11 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const highlight = () => {
-      summary.querySelectorAll('[data-quality] .rounded-xl').forEach(el => {
+      summary.querySelectorAll('#lq-cards [data-quality]').forEach(el => {
         el.classList.remove('ring-2','ring-offset-2');
       });
       if (currentFilter !== 'all') {
-        const active = summary.querySelector(`[data-quality="${currentFilter}"] .rounded-xl`);
+        const active = summary.querySelector(`#lq-cards [data-quality="${currentFilter}"]`);
         if (active) active.classList.add('ring-2','ring-offset-2');
       }
     };
@@ -94,19 +120,14 @@ document.addEventListener('DOMContentLoaded', () => {
       highlight();
       setBadge();
     };
-    summary.querySelectorAll('[data-quality]').forEach(wrapper => {
-      wrapper.addEventListener('click', () => {
-        const q = wrapper.getAttribute('data-quality');
+    // Click on chips or any bar segment
+    summary.querySelectorAll('#lq-cards [data-quality], #lq-bars [data-quality]').forEach(el => {
+      el.addEventListener('click', () => {
+        const q = el.getAttribute('data-quality');
         currentFilter = (currentFilter === q) ? 'all' : q;
         applyFilterAndRender();
-        // click feedback animation
-        const cardEl = wrapper.querySelector('.rounded-xl');
-        if (cardEl) {
-          cardEl.classList.add('shadow-lg','scale-[0.98]');
-          setTimeout(() => {
-            cardEl.classList.remove('shadow-lg','scale-[0.98]');
-          }, 180);
-        }
+        el.classList.add('scale-95');
+        setTimeout(() => el.classList.remove('scale-95'), 150);
       });
     });
     const btnAll = summary.querySelector('#lq-all');
@@ -167,8 +188,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const wrapper = document.createElement('div');
     wrapper.innerHTML = `
-      <h3 class="text-lg font-semibold mb-3 text-gray-800 text-center">Top 5 Ordered Dishes</h3>
-      <div class="rounded-xl border bg-white p-4 flex flex-col gap-4" id="top-dishes-rows"></div>`;
+      <div class="rounded-xl border bg-white p-4 flex flex-col gap-4">
+        <div class="text-lg font-semibold mb-1 text-gray-800 text-center">Top 5 Ordered Dishes</div>
+        <div id="top-dishes-rows" class="flex flex-col gap-4"></div>
+      </div>`;
     container.appendChild(wrapper);
     parentEl.appendChild(container);
 
