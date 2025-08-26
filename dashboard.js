@@ -119,7 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const spamPct = Math.round((counts.spam / total) * 100);
     summary.innerHTML = `
       <div class="rounded-xl border bg-white p-4">
-        <div class="text-lg font-semibold mb-3 text-gray-800 text-center">Lead Quality Distribution (analyzed: ${total})</div>
+        <div class="text-lg font-semibold mb-3 text-gray-800 text-center">Lead Quality Distribution</div>
         <div id="lq-bars" class="flex flex-col gap-2 mb-3">
           <div class="flex items-center gap-3">
             <div class="w-16 text-xs font-medium text-green-700">Good</div>
