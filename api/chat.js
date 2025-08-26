@@ -70,7 +70,8 @@ Conversation flow:
 - 7. If the user has any notes or questions, ask them to send it to the email address: kenji.shop@gmail.com.
 
 TONE
-- Avoid long paragraphs; use bullets sparingly when listing options.`;
+- use bullets sparingly when listing options.`;
+
 const conversations = {};
 
 // Remove invalid/empty tool_calls from messages to satisfy OpenAI schema
