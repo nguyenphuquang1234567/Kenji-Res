@@ -6,7 +6,10 @@ const SUPABASE_KEY = process.env.SUPABASE_KEY;
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Direct analysis system prompt
-const ANALYSIS_SYSTEM_PROMPT = `Extract the following customer details from the transcript:
+const ANALYSIS_SYSTEM_PROMPT = `Extract the following customer details from the transcript.
+Also classify user's intent precisely as one of: 'order', 'ask_info', 'other'.
+Only set orderItem when the intent is 'order'. The user might ask to learn more about a dish; do not infer an order in that case.
+Return strictly valid JSON per the schema below.
 - Name
 - Email address
 - Phone number
@@ -26,9 +29,10 @@ Format the response using this JSON schema:
     "customerAddress": { "type": "string" },
     "orderItem": { "type": "string" },
     "specialNotes": { "type": "string" },
-    "leadQuality": { "type": "string", "enum": ["good", "ok", "spam"] }
+    "leadQuality": { "type": "string", "enum": ["good", "ok", "spam"] },
+    "userIntent": { "type": "string", "enum": ["order", "ask_info", "other"] }
   },
-  "required": ["customerName", "customerEmail", "orderTime", "leadQuality"]
+  "required": ["customerName", "customerEmail", "orderTime", "leadQuality", "userIntent"]
 }
 Return only a valid JSON object, with no extra commentary.`;
 
@@ -138,6 +142,10 @@ module.exports = async (req, res) => {
       }
     }
     
+    // Build update payload, only set order_item when intent is 'order'
+    const intent = (analysis.userIntent || analysis.user_intent || '').toLowerCase();
+    const safeOrderItem = intent === 'order' ? (analysis.orderItem || analysis.order_item || '') : '';
+
     // Update the conversation record with the analysis
     const { error: updateError } = await supabase
       .from('restaurant')
@@ -147,7 +155,7 @@ module.exports = async (req, res) => {
         customer_phone: analysis.customerPhone || analysis.customer_phone || '',
         order_time: formatOrderTime(analysis.orderTime || analysis.order_time || ''),
         customer_address: analysis.customerAddress || analysis.customer_address || '',
-        order_item: analysis.orderItem || analysis.order_item || '',
+        order_item: safeOrderItem,
         special_notes: analysis.specialNotes || analysis.special_notes || '',
         lead_quality: analysis.leadQuality || analysis.lead_quality || 'spam',
         analyzed_at: new Date().toISOString()

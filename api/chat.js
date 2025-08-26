@@ -11,7 +11,10 @@ if (!SUPABASE_URL || !SUPABASE_KEY) {
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Direct analysis system prompt for extracting customer info
-const ANALYSIS_SYSTEM_PROMPT = `Extract the following customer details from the transcript:
+const ANALYSIS_SYSTEM_PROMPT = `Extract the following customer details from the transcript.
+Also classify user's intent precisely as one of: 'order', 'ask_info', 'other'.
+Only set orderItem when the intent is 'order'. The user might ask to learn more about a dish; do not infer an order in that case.
+Return strictly valid JSON per the schema below.
 - Name
 - Email address
 - Phone number
@@ -31,9 +34,10 @@ Format the response using this JSON schema:
     "customerAddress": { "type": "string" },
     "orderItem": { "type": "string" },
     "specialNotes": { "type": "string" },
-    "leadQuality": { "type": "string", "enum": ["good", "ok", "spam"] }
+    "leadQuality": { "type": "string", "enum": ["good", "ok", "spam"] },
+    "userIntent": { "type": "string", "enum": ["order", "ask_info", "other"] }
   },
-  "required": ["customerName", "customerEmail", "orderTime", "leadQuality"]
+  "required": ["customerName", "customerEmail", "orderTime", "leadQuality", "userIntent"]
 }
 Return only a valid JSON object, with no extra commentary.`;
 
@@ -216,13 +220,14 @@ async function analyzeConversationDirect(sessionId, messages) {
     const hasContacts = (extracted.customerEmail && extracted.customerEmail.trim()) || (extracted.customerPhone && extracted.customerPhone.trim());
     const leadQuality = hasContacts ? 'good' : 'spam';
 
+    const intent = (extracted.userIntent || extracted.user_intent || '').toLowerCase();
     const updateData = {
       customer_name: extracted.customerName || '',
       customer_email: extracted.customerEmail || '',
       customer_phone: extracted.customerPhone || '',
       order_time: formatOrderTime(extracted.orderTime || extracted.order_time || ''),
       customer_address: extracted.customerAddress || extracted.customer_address || '',
-      order_item: extracted.orderItem || extracted.order_item || '',
+      order_item: intent === 'order' ? (extracted.orderItem || extracted.order_item || '') : '',
       special_notes: extracted.specialNotes || extracted.special_notes || '',
       lead_quality: leadQuality,
       analyzed_at: new Date().toISOString()

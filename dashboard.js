@@ -5,6 +5,77 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentFilter = 'all'; // 'all' | 'good' | 'ok' | 'spam'
   const BOT_ICON_PATH = 'images/logo.png';
 
+  // Render conversion rate statistics
+  function renderConversionRateStats(parentEl, items) {
+    const container = document.createElement('div');
+    container.className = 'mb-6';
+
+    const total = items.length;
+    const withOrders = items.filter(c => c.order_item && String(c.order_item).trim() !== '').length;
+    const conversionRate = total > 0 ? Math.round((withOrders / total) * 1000) / 10 : 0; // one decimal place
+
+    // Calculate additional metrics
+    const analyzed = items.filter(c => Boolean(c?.analyzed_at) || typeof c?.lead_quality === 'string').length;
+    const unanalyzed = total - analyzed;
+    const goodLeads = items.filter(c => (c.lead_quality || '').toLowerCase() === 'good').length;
+    const potentialConversion = goodLeads + items.filter(c => (c.lead_quality || '').toLowerCase() === 'ok').length;
+
+    container.innerHTML = `
+      <div class="rounded-xl border bg-white p-4">
+        <div class="text-lg font-semibold mb-4 text-gray-800 text-center">Conversion Analytics</div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Conversion Rate -->
+          <div class="text-center p-3 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200">
+            <div class="text-2xl font-bold text-blue-700">${conversionRate}%</div>
+            <div class="text-sm text-blue-600 font-medium">Conversion Rate</div>
+            <div class="text-xs text-blue-500 mt-1">${withOrders}/${total} conversations</div>
+          </div>
+          
+          <!-- Total Conversations -->
+          <div class="text-center p-3 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border border-gray-200">
+            <div class="text-2xl font-bold text-gray-700">${total}</div>
+            <div class="text-sm text-gray-600 font-medium">Total Conversations</div>
+            <div class="text-xs text-gray-500 mt-1">All time</div>
+          </div>
+          
+          <!-- Analyzed Conversations -->
+          <div class="text-center p-3 bg-gradient-to-br from-green-50 to-green-100 rounded-lg border border-green-200">
+            <div class="text-2xl font-bold text-green-700">${analyzed}</div>
+            <div class="text-sm text-green-600 font-medium">Analyzed</div>
+            <div class="text-xs text-green-500 mt-1">${unanalyzed} pending</div>
+          </div>
+          
+          <!-- Potential Conversions -->
+          <div class="text-center p-3 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border border-purple-200">
+            <div class="text-2xl font-bold text-purple-700">${potentialConversion}</div>
+            <div class="text-sm text-purple-600 font-medium">High Potential</div>
+            <div class="text-xs text-purple-500 mt-1">Good + OK leads</div>
+          </div>
+        </div>
+        
+        <!-- Conversion Progress Bar -->
+        <div class="mt-4">
+          <div class="flex justify-between text-sm text-gray-600 mb-2">
+            <span>Conversion Progress</span>
+            <span>${withOrders}/${total} (${conversionRate}%)</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+            <div class="bg-gradient-to-r from-blue-500 to-blue-600 h-full transition-all duration-1000 ease-out" 
+                 style="width: ${conversionRate}%"></div>
+          </div>
+          <div class="flex justify-between text-xs text-gray-500 mt-1">
+            <span>0%</span>
+            <span>25%</span>
+            <span>50%</span>
+            <span>75%</span>
+            <span>100%</span>
+          </div>
+        </div>
+      </div>`;
+
+    parentEl.appendChild(container);
+  }
+
   // Helper: render lead quality summary cards
   function renderLeadQualitySummary(parentEl, items) {
     // Consider a conversation analyzed if it has analyzed_at or lead_quality present
@@ -341,8 +412,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      // Lead quality summary & Top dishes at the top
+      // Lead quality summary & Conversion stats & Top dishes at the top
       renderLeadQualitySummary(conversationList, conversations);
+      renderConversionRateStats(conversationList, conversations);
       renderTopDishesChart(conversationList, conversations);
 
       const listContainer = document.createElement('div');
