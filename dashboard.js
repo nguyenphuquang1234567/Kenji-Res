@@ -4,6 +4,13 @@ document.addEventListener('DOMContentLoaded', () => {
   let conversations = [];
   let currentFilter = 'all'; // 'all' | 'good' | 'ok' | 'spam'
   const BOT_ICON_PATH = 'images/logo.png';
+  
+  // Dashboard is always live - no refresh needed
+
+  // Add refresh controls to the page
+  function addRefreshControls() {
+    // No refresh controls needed - dashboard is always live
+  }
 
   // Render conversion rate statistics
   function renderConversionRateStats(parentEl, items) {
@@ -21,49 +28,49 @@ document.addEventListener('DOMContentLoaded', () => {
     const potentialConversion = goodLeads + items.filter(c => (c.lead_quality || '').toLowerCase() === 'ok').length;
 
     container.innerHTML = `
-      <div class="rounded-xl border bg-white p-4">
-        <div class="text-lg font-semibold mb-4 text-gray-800 text-center">Conversion Analytics</div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="stats-card">
+        <div class="text-xl font-semibold mb-6 text-gray-800 text-center">Conversion Analytics</div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <!-- Conversion Rate -->
-          <div class="text-center p-3 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200">
-            <div class="text-2xl font-bold text-blue-700">${conversionRate}%</div>
+          <div class="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200">
+            <div class="text-3xl font-bold text-blue-700 mb-2">${conversionRate}%</div>
             <div class="text-sm text-blue-600 font-medium">Conversion Rate</div>
             <div class="text-xs text-blue-500 mt-1">${withOrders}/${total} conversations</div>
           </div>
           
           <!-- Total Conversations -->
-          <div class="text-center p-3 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border border-gray-200">
-            <div class="text-2xl font-bold text-gray-700">${total}</div>
+          <div class="text-center p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border border-gray-200">
+            <div class="text-3xl font-bold text-gray-700 mb-2">${total}</div>
             <div class="text-sm text-gray-600 font-medium">Total Conversations</div>
             <div class="text-xs text-gray-500 mt-1">All time</div>
           </div>
           
           <!-- Analyzed Conversations -->
-          <div class="text-center p-3 bg-gradient-to-br from-green-50 to-green-100 rounded-lg border border-green-200">
-            <div class="text-2xl font-bold text-green-700">${analyzed}</div>
+          <div class="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border border-green-200">
+            <div class="text-3xl font-bold text-green-700 mb-2">${analyzed}</div>
             <div class="text-sm text-green-600 font-medium">Analyzed</div>
             <div class="text-xs text-green-500 mt-1">${unanalyzed} pending</div>
           </div>
           
           <!-- Potential Conversions -->
-          <div class="text-center p-3 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border border-purple-200">
-            <div class="text-2xl font-bold text-purple-700">${potentialConversion}</div>
+          <div class="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200">
+            <div class="text-3xl font-bold text-purple-700 mb-2">${potentialConversion}</div>
             <div class="text-sm text-purple-600 font-medium">High Potential</div>
             <div class="text-xs text-purple-500 mt-1">Good + OK leads</div>
           </div>
         </div>
         
         <!-- Conversion Progress Bar -->
-        <div class="mt-4">
-          <div class="flex justify-between text-sm text-gray-600 mb-2">
-            <span>Conversion Progress</span>
-            <span>${withOrders}/${total} (${conversionRate}%)</span>
+        <div class="mt-6">
+          <div class="flex justify-between text-sm text-gray-600 mb-3">
+            <span class="font-medium">Conversion Progress</span>
+            <span class="font-medium">${withOrders}/${total} (${conversionRate}%)</span>
           </div>
-          <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-            <div class="bg-gradient-to-r from-blue-500 to-blue-600 h-full transition-all duration-1000 ease-out" 
+          <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+            <div class="trend-bar h-full transition-all duration-1000 ease-out" 
                  style="width: ${conversionRate}%"></div>
           </div>
-          <div class="flex justify-between text-xs text-gray-500 mt-1">
+          <div class="flex justify-between text-xs text-gray-500 mt-2">
             <span>0%</span>
             <span>25%</span>
             <span>50%</span>
@@ -91,13 +98,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const pct = (n) => total > 0 ? Math.round((n / total) * 1000) / 10 : 0; // one decimal place
 
     const card = (label, count, percent, color) => `
-      <div class="flex-1 min-w-[200px] rounded-xl border shadow-sm p-4 bg-white ${color.border}">
-        <div class="text-sm text-gray-600">${label}</div>
-        <div class="mt-2 flex items-baseline gap-2">
-          <div class="text-2xl font-bold ${color.text}">${percent}%</div>
+      <div class="flex-1 min-w-[200px] stats-card ${color.border}">
+        <div class="text-sm text-gray-600 font-medium">${label}</div>
+        <div class="mt-3 flex items-baseline gap-2">
+          <div class="text-3xl font-bold ${color.text}">${percent}%</div>
           <div class="text-sm text-gray-500">(${count}/${total || 0})</div>
         </div>
-        <div class="mt-2 h-2 rounded-full bg-gray-100 overflow-hidden">
+        <div class="mt-3 h-3 rounded-full bg-gray-100 overflow-hidden">
           <div class="h-full ${color.bg}" style="width:${percent}%;"></div>
         </div>
       </div>`;
@@ -118,39 +125,39 @@ document.addEventListener('DOMContentLoaded', () => {
     const okPct = Math.round((counts.ok / total) * 100);
     const spamPct = Math.round((counts.spam / total) * 100);
     summary.innerHTML = `
-      <div class="rounded-xl border bg-white p-4">
-        <div class="text-lg font-semibold mb-3 text-gray-800 text-center">Lead Quality Distribution</div>
-        <div id="lq-bars" class="flex flex-col gap-2 mb-3">
-          <div class="flex items-center gap-3">
-            <div class="w-16 text-xs font-medium text-green-700">Good</div>
-            <div class="flex-1 h-4 rounded-full bg-gray-100 overflow-hidden border border-gray-200">
-              <div data-quality="good" class="h-full bg-green-500 cursor-pointer" style="width:${goodPct}%"></div>
+      <div class="stats-card">
+        <div class="text-xl font-semibold mb-4 text-gray-800 text-center">Lead Quality Distribution</div>
+        <div id="lq-bars" class="flex flex-col gap-3 mb-4">
+          <div class="flex items-center gap-4">
+            <div class="w-20 text-sm font-medium text-green-700">Good</div>
+            <div class="flex-1 h-5 rounded-full bg-gray-100 overflow-hidden border border-gray-200">
+              <div data-quality="good" class="h-full bg-green-500 cursor-pointer transition-all duration-300" style="width:${goodPct}%"></div>
             </div>
-            <div class="w-16 text-right text-xs text-gray-600">${goodPct}% (${counts.good})</div>
+            <div class="w-20 text-right text-sm text-gray-600 font-medium">${goodPct}% (${counts.good})</div>
           </div>
-          <div class="flex items-center gap-3">
-            <div class="w-16 text-xs font-medium text-yellow-700">OK</div>
-            <div class="flex-1 h-4 rounded-full bg-gray-100 overflow-hidden border border-gray-200">
-              <div data-quality="ok" class="h-full bg-yellow-400 cursor-pointer" style="width:${okPct}%"></div>
+          <div class="flex items-center gap-4">
+            <div class="w-20 text-sm font-medium text-yellow-700">OK</div>
+            <div class="flex-1 h-5 rounded-full bg-gray-100 overflow-hidden border border-gray-200">
+              <div data-quality="ok" class="h-full bg-yellow-400 cursor-pointer transition-all duration-300" style="width:${okPct}%"></div>
             </div>
-            <div class="w-16 text-right text-xs text-gray-600">${okPct}% (${counts.ok})</div>
+            <div class="w-20 text-right text-sm text-gray-600 font-medium">${okPct}% (${counts.ok})</div>
           </div>
-          <div class="flex items-center gap-3">
-            <div class="w-16 text-xs font-medium text-red-700">Spam</div>
-            <div class="flex-1 h-4 rounded-full bg-gray-100 overflow-hidden border border-gray-200">
-              <div data-quality="spam" class="h-full bg-red-500 cursor-pointer" style="width:${spamPct}%"></div>
+          <div class="flex items-center gap-4">
+            <div class="w-20 text-sm font-medium text-red-700">Spam</div>
+            <div class="flex-1 h-5 rounded-full bg-gray-100 overflow-hidden border border-gray-200">
+              <div data-quality="spam" class="h-full bg-red-500 cursor-pointer transition-all duration-300" style="width:${spamPct}%"></div>
             </div>
-            <div class="w-16 text-right text-xs text-gray-600">${spamPct}% (${counts.spam})</div>
+            <div class="w-20 text-right text-sm text-gray-600 font-medium">${spamPct}% (${counts.spam})</div>
           </div>
         </div>
-        <div class="flex flex-wrap items-center justify-center gap-2" id="lq-cards">
-          <button data-quality="good" class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200 transition hover:-translate-y-0.5 active:scale-95">Good ${goodPct}% (${counts.good})</button>
-          <button data-quality="ok" class="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200 transition hover:-translate-y-0.5 active:scale-95">OK ${okPct}% (${counts.ok})</button>
-          <button data-quality="spam" class="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200 transition hover:-translate-y-0.5 active:scale-95">Spam ${spamPct}% (${counts.spam})</button>
-          <button id="lq-all" class="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200 hover:underline">Show all</button>
+        <div class="flex flex-wrap items-center justify-center gap-3" id="lq-cards">
+          <button data-quality="good" class="px-3 py-2 rounded-full text-sm font-medium bg-green-100 text-green-800 border border-green-200 transition hover:-translate-y-0.5 active:scale-95 hover:bg-green-200">Good ${goodPct}% (${counts.good})</button>
+          <button data-quality="ok" class="px-3 py-2 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800 border border-yellow-200 transition hover:-translate-y-0.5 active:scale-95 hover:bg-yellow-200">OK ${okPct}% (${counts.ok})</button>
+          <button data-quality="spam" class="px-3 py-2 rounded-full text-sm font-medium bg-red-100 text-red-800 border border-red-200 transition hover:-translate-y-0.5 active:scale-95 hover:bg-red-200">Spam ${spamPct}% (${counts.spam})</button>
+          <button id="lq-all" class="px-3 py-2 rounded-full text-sm font-medium bg-gray-100 text-gray-800 border border-gray-200 hover:bg-gray-200 transition">Show all</button>
         </div>
-        <div class="mt-3 flex justify-center">
-          <span id="lq-badge" class="hidden px-3 py-1 rounded-full text-xs font-medium border"></span>
+        <div class="mt-4 flex justify-center">
+          <span id="lq-badge" class="hidden px-4 py-2 rounded-full text-sm font-medium border"></span>
         </div>
       </div>`;
 
@@ -310,13 +317,195 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Render time-based trend chart
+  function renderTimeTrendChart(parentEl, items) {
+    const container = document.createElement('div');
+    container.className = 'mb-6';
+
+    // Group data by date (last 7 days)
+    const last7Days = [];
+    const today = new Date();
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      last7Days.push(date.toISOString().split('T')[0]);
+    }
+
+    const dailyData = last7Days.map(date => {
+      const dayItems = items.filter(item => {
+        const itemDate = new Date(item.created_at).toISOString().split('T')[0];
+        return itemDate === date;
+      });
+
+      const totalConversations = dayItems.length;
+      const orders = dayItems.filter(c => c.order_item && String(c.order_item).trim() !== '').length;
+      const conversionRate = totalConversations > 0 ? Math.round((orders / totalConversations) * 100) : 0;
+
+      return {
+        date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        conversations: totalConversations,
+        orders: orders,
+        conversionRate: conversionRate
+      };
+    });
+
+    const maxConversations = Math.max(...dailyData.map(d => d.conversations));
+    const maxOrders = Math.max(...dailyData.map(d => d.orders));
+    const maxConversion = Math.max(...dailyData.map(d => d.conversionRate));
+
+    container.innerHTML = `
+      <div class="rounded-xl border bg-white p-4">
+        <div class="text-lg font-semibold mb-4 text-gray-800 text-center">7-Day Trend</div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+          <!-- Conversations Trend -->
+          <div class="bg-blue-50 rounded-lg p-3">
+            <div class="text-sm text-blue-600 font-medium mb-2">Conversations</div>
+            <div class="flex items-end gap-1 h-16">
+              ${dailyData.map(day => {
+                const height = maxConversations > 0 ? (day.conversations / maxConversations) * 100 : 0;
+                return `<div class="flex-1 bg-blue-500 rounded-t transition-all duration-300" style="height: ${height}%"></div>`;
+              }).join('')}
+            </div>
+            <div class="flex justify-between text-xs text-gray-500 mt-1">
+              ${dailyData.map(day => `<span>${day.date}</span>`).join('')}
+            </div>
+          </div>
+
+          <!-- Orders Trend -->
+          <div class="bg-green-50 rounded-lg p-3">
+            <div class="text-sm text-green-600 font-medium mb-2">Orders</div>
+            <div class="flex items-end gap-1 h-16">
+              ${dailyData.map(day => {
+                const height = maxOrders > 0 ? (day.orders / maxOrders) * 100 : 0;
+                return `<div class="flex-1 bg-green-500 rounded-t transition-all duration-300" style="height: ${height}%"></div>`;
+              }).join('')}
+            </div>
+            <div class="flex justify-between text-xs text-gray-500 mt-1">
+              ${dailyData.map(day => `<span>${day.date}</span>`).join('')}
+            </div>
+          </div>
+
+          <!-- Conversion Rate Trend -->
+          <div class="bg-purple-50 rounded-lg p-3">
+            <div class="text-sm text-purple-600 font-medium mb-2">Conversion %</div>
+            <div class="flex items-end gap-1 h-16">
+              ${dailyData.map(day => {
+                const height = maxConversion > 0 ? (day.conversionRate / maxConversion) * 100 : 0;
+                return `<div class="flex-1 bg-purple-500 rounded-t transition-all duration-300" style="height: ${height}%"></div>`;
+              }).join('')}
+            </div>
+            <div class="flex justify-between text-xs text-gray-500 mt-1">
+              ${dailyData.map(day => `<span>${day.date}</span>`).join('')}
+            </div>
+          </div>
+        </div>
+      </div>`;
+
+    parentEl.appendChild(container);
+  }
+
+  // Render performance comparison (this week vs last week)
+  function renderPerformanceComparison(parentEl, items) {
+    const container = document.createElement('div');
+    container.className = 'mb-6';
+
+    // Calculate this week and last week data
+    const now = new Date();
+    const thisWeekStart = new Date(now);
+    thisWeekStart.setDate(now.getDate() - now.getDay()); // Start of week (Sunday)
+    thisWeekStart.setHours(0, 0, 0, 0);
+
+    const lastWeekStart = new Date(thisWeekStart);
+    lastWeekStart.setDate(thisWeekStart.getDate() - 7);
+
+    const thisWeekEnd = new Date(thisWeekStart);
+    thisWeekEnd.setDate(thisWeekStart.getDate() + 7);
+
+    const lastWeekEnd = new Date(lastWeekStart);
+    lastWeekEnd.setDate(lastWeekStart.getDate() + 7);
+
+    const thisWeekItems = items.filter(item => {
+      const itemDate = new Date(item.created_at);
+      return itemDate >= thisWeekStart && itemDate < thisWeekEnd;
+    });
+
+    const lastWeekItems = items.filter(item => {
+      const itemDate = new Date(item.created_at);
+      return itemDate >= lastWeekStart && itemDate < lastWeekEnd;
+    });
+
+    // Calculate metrics
+    const thisWeekConversations = thisWeekItems.length;
+    const thisWeekOrders = thisWeekItems.filter(c => c.order_item && String(c.order_item).trim() !== '').length;
+    const thisWeekConversion = thisWeekConversations > 0 ? Math.round((thisWeekOrders / thisWeekConversations) * 100) : 0;
+
+    const lastWeekConversations = lastWeekItems.length;
+    const lastWeekOrders = lastWeekItems.filter(c => c.order_item && String(c.order_item).trim() !== '').length;
+    const lastWeekConversion = lastWeekConversations > 0 ? Math.round((lastWeekOrders / lastWeekConversations) * 100) : 0;
+
+    // Calculate percentage changes
+    const convChange = lastWeekConversations > 0 ? Math.round(((thisWeekConversations - lastWeekConversations) / lastWeekConversations) * 100) : 0;
+    const orderChange = lastWeekOrders > 0 ? Math.round(((thisWeekOrders - lastWeekOrders) / lastWeekOrders) * 100) : 0;
+    const conversionChange = lastWeekConversion > 0 ? Math.round(((thisWeekConversion - lastWeekConversion) / lastWeekConversion) * 100) : 0;
+
+    const getChangeColor = (change) => {
+      if (change > 0) return 'text-green-600';
+      if (change < 0) return 'text-red-600';
+      return 'text-gray-600';
+    };
+
+    const getChangeIcon = (change) => {
+      if (change > 0) return '↗️';
+      if (change < 0) return '↘️';
+      return '→';
+    };
+
+    container.innerHTML = `
+      <div class="rounded-xl border bg-white p-4">
+        <div class="text-lg font-semibold mb-4 text-gray-800 text-center">This Week vs Last Week</div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- Conversations -->
+          <div class="bg-blue-50 rounded-lg p-4 text-center">
+            <div class="text-sm text-blue-600 font-medium mb-2">Conversations</div>
+            <div class="text-2xl font-bold text-blue-700 mb-1">${thisWeekConversations}</div>
+            <div class="text-xs ${getChangeColor(convChange)}">
+              ${getChangeIcon(convChange)} ${convChange > 0 ? '+' : ''}${convChange}% vs last week
+            </div>
+            <div class="text-xs text-gray-500 mt-1">Last week: ${lastWeekConversations}</div>
+          </div>
+
+          <!-- Orders -->
+          <div class="bg-green-50 rounded-lg p-4 text-center">
+            <div class="text-sm text-green-600 font-medium mb-2">Orders</div>
+            <div class="text-2xl font-bold text-green-700 mb-1">${thisWeekOrders}</div>
+            <div class="text-xs ${getChangeColor(orderChange)}">
+              ${getChangeIcon(orderChange)} ${orderChange > 0 ? '+' : ''}${orderChange}% vs last week
+            </div>
+            <div class="text-xs text-gray-500 mt-1">Last week: ${lastWeekOrders}</div>
+          </div>
+
+          <!-- Conversion Rate -->
+          <div class="bg-purple-50 rounded-lg p-4 text-center">
+            <div class="text-sm text-purple-600 font-medium mb-2">Conversion Rate</div>
+            <div class="text-2xl font-bold text-purple-700 mb-1">${thisWeekConversion}%</div>
+            <div class="text-xs ${getChangeColor(conversionChange)}">
+              ${getChangeIcon(conversionChange)} ${conversionChange > 0 ? '+' : ''}${conversionChange}% vs last week
+            </div>
+            <div class="text-xs text-gray-500 mt-1">Last week: ${lastWeekConversion}%</div>
+          </div>
+        </div>
+      </div>`;
+
+    parentEl.appendChild(container);
+  }
+
   // Render conversation items into a target container
   function renderConversationItems(containerEl, items) {
     const list = document.createElement('div');
     list.className = 'flex flex-col gap-2';
     items.forEach(conv => {
       const item = document.createElement('div');
-      item.className = 'flex items-center justify-between w-full px-4 py-3 rounded-lg border border-gray-200 bg-white hover:bg-blue-50 shadow transition';
+      item.className = 'conversation-item flex items-center justify-between w-full';
       
       // Left side with conversation info
       const leftSide = document.createElement('div');
@@ -339,11 +528,11 @@ document.addEventListener('DOMContentLoaded', () => {
       if (conv.lead_quality) {
         const qualityBadge = document.createElement('span');
         const qualityColors = {
-          'good': 'bg-green-100 text-green-800',
-          'ok': 'bg-yellow-100 text-yellow-800',
-          'spam': 'bg-red-100 text-red-800'
+          'good': 'quality-good',
+          'ok': 'quality-ok',
+          'spam': 'quality-spam'
         };
-        qualityBadge.className = `ml-2 px-2 py-1 text-xs rounded-full ${qualityColors[conv.lead_quality] || 'bg-gray-100 text-gray-800'}`;
+        qualityBadge.className = `ml-3 quality-badge ${qualityColors[conv.lead_quality] || 'bg-gray-100 text-gray-800'}`;
         qualityBadge.textContent = conv.lead_quality.toUpperCase();
         leftSide.appendChild(qualityBadge);
       }
@@ -356,7 +545,7 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Analyze button
       const analyzeBtn = document.createElement('button');
-      analyzeBtn.className = 'p-2 rounded-full hover:bg-blue-100 text-blue-600 transition flex items-center';
+      analyzeBtn.className = 'action-button p-2 rounded-full hover:bg-blue-100 text-blue-600 flex items-center';
       analyzeBtn.innerHTML = `<svg xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\" stroke-width=\"1.5\" stroke=\"currentColor\" class=\"w-4 h-4\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423L16.5 15.75l.394 1.183a2.25 2.25 0 001.423 1.423L19.5 18.75l-1.183.394a2.25 2.25 0 00-1.423 1.423z\" /></svg>`;
       analyzeBtn.title = 'Analyze conversation';
       analyzeBtn.onclick = async (e) => {
@@ -365,10 +554,10 @@ document.addEventListener('DOMContentLoaded', () => {
       };
       rightSide.appendChild(analyzeBtn);
       
-      // View analysis button (if already analyzed)
-      if (conv.analyzed_at) {
-        const viewAnalysisBtn = document.createElement('button');
-        viewAnalysisBtn.className = 'p-2 rounded-full hover:bg-green-100 text-green-600 transition flex items-center';
+              // View analysis button (if already analyzed)
+        if (conv.analyzed_at) {
+          const viewAnalysisBtn = document.createElement('button');
+          viewAnalysisBtn.className = 'action-button p-2 rounded-full hover:bg-green-100 text-green-600 flex items-center';
         viewAnalysisBtn.innerHTML = `<svg xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\" stroke-width=\"1.5\" stroke=\"currentColor\" class=\"w-4 h-4\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.639 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.639 0-8.573-3.007-9.963-7.178z\" /><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M15 12a3 3 0 11-6 0 3 3 0 016 0z\" /></svg>`;
         viewAnalysisBtn.title = 'View analysis';
         viewAnalysisBtn.onclick = async (e) => {
@@ -380,14 +569,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Delete button
       const delBtn = document.createElement('button');
-      delBtn.className = 'p-2 rounded-full hover:bg-red-100 text-red-600 transition flex items-center';
+      delBtn.className = 'action-button p-2 rounded-full hover:bg-red-100 text-red-600 flex items-center';
       delBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>`;
       delBtn.title = 'Delete conversation';
       delBtn.onclick = async (e) => {
         e.stopPropagation();
-        if (confirm('Are you sure you want to delete this conversation?')) {
-          await deleteConversation(conv.conversation_id);
-        }
+        await deleteConversation(conv.conversation_id);
       };
       rightSide.appendChild(delBtn);
       
@@ -399,10 +586,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Fetch and display all conversations
-  async function loadConversations() {
-    messagesContainer.style.display = 'none';
-    conversationList.style.display = 'block';
-    conversationList.innerHTML = '';
+  async function loadConversations(silent = false) {
+    if (!silent) {
+      messagesContainer.style.display = 'none';
+      conversationList.style.display = 'block';
+      conversationList.innerHTML = '';
+      addRefreshControls(); // Add refresh controls only on initial load
+    }
     try {
       const res = await fetch('/api/conversations');
       const data = await res.json();
@@ -416,6 +606,8 @@ document.addEventListener('DOMContentLoaded', () => {
       renderLeadQualitySummary(conversationList, conversations);
       renderConversionRateStats(conversationList, conversations);
       renderTopDishesChart(conversationList, conversations);
+      renderTimeTrendChart(conversationList, conversations);
+      renderPerformanceComparison(conversationList, conversations);
 
       const listContainer = document.createElement('div');
       listContainer.id = 'conv-list';
@@ -431,13 +623,27 @@ document.addEventListener('DOMContentLoaded', () => {
   async function loadMessages(conversationId) {
     conversationList.style.display = 'none';
     messagesContainer.style.display = 'block';
-    messagesContainer.innerHTML = '<button class="mb-6 px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition" id="back-to-list">Back to List</button>';
+    messagesContainer.innerHTML = '';
+    
+    // Create back button properly
+    const backBtn = document.createElement('button');
+    backBtn.className = 'mb-6 px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition';
+    backBtn.textContent = 'Back to List';
+    backBtn.onclick = () => {
+      console.log('Back to List button clicked!');
+      loadConversations(false);
+    };
+    messagesContainer.appendChild(backBtn);
+    
     try {
       const res = await fetch(`/api/conversations_messages?id=${encodeURIComponent(conversationId)}`);
       const data = await res.json();
       const messages = data.messages || [];
       if (messages.length === 0) {
-        messagesContainer.innerHTML += '<p class="text-gray-500 text-center">No messages in this conversation.</p>';
+        const noMsg = document.createElement('p');
+        noMsg.className = 'text-gray-500 text-center';
+        noMsg.textContent = 'No messages in this conversation.';
+        messagesContainer.appendChild(noMsg);
       } else {
         const msgList = document.createElement('div');
         msgList.className = 'flex flex-col gap-3';
@@ -472,9 +678,11 @@ document.addEventListener('DOMContentLoaded', () => {
         messagesContainer.appendChild(msgList);
       }
     } catch (err) {
-      messagesContainer.innerHTML += '<p class="text-red-500 text-center">Error loading messages.</p>';
+      const errorMsg = document.createElement('p');
+      errorMsg.className = 'text-red-500 text-center';
+      errorMsg.textContent = 'Error loading messages.';
+      messagesContainer.appendChild(errorMsg);
     }
-    document.getElementById('back-to-list').onclick = loadConversations;
   }
 
   async function deleteConversation(conversationId) {
@@ -519,7 +727,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const backBtn = document.createElement('button');
     backBtn.className = 'mb-6 px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition';
     backBtn.textContent = 'Back to List';
-    backBtn.onclick = loadConversations;
+    backBtn.onclick = () => {
+      console.log('Back to List button clicked!');
+      loadConversations(false);
+    };
     messagesContainer.appendChild(backBtn);
 
     const analysisContainer = document.createElement('div');

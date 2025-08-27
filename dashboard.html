@@ -7,44 +7,153 @@
   <link rel="stylesheet" href="chatbot.css">
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    /* Dashboard themed background using site image */
     body {
+      font-family: 'Inter', sans-serif;
       min-height: 100vh;
       margin: 0;
-      background:
-        linear-gradient(180deg, rgba(0,0,0,0.45), rgba(0,0,0,0.55)),
-        url('images/background.png') center/cover no-repeat fixed;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       overflow-x: hidden;
     }
-    /* Expand and flatten the dashboard container on desktops */
-    @media (min-width: 1024px) {
-      .chatbot-container {
-        width: 100vw;        /* cover full canvas width */
-        max-width: none;     /* remove cap */
-        background: transparent; /* no dark panel */
-        border: none;
-        box-shadow: none;
-      }
-      /* remove decorative overlay from chatbot.css */
-      .chatbot-container::before { content: none !important; }
+    
+    .dashboard-container {
+      width: 100%;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
     }
-    /* Also transparent on mobile/tablet */
-    @media (max-width: 1023px) {
-      .chatbot-container {
-        width: 100vw;
-        max-width: none;
-        background: transparent;
-        border: none;
-        box-shadow: none;
+    
+    .header-section {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+    
+    .back-button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    .back-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+    }
+    
+    .stats-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+    }
+    
+    .stats-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    }
+    
+    .conversation-item {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 0.75rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+    
+    .conversation-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+      border-color: rgba(102, 126, 234, 0.3);
+    }
+    
+    .quality-badge {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .quality-good {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+    }
+    
+    .quality-ok {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: white;
+    }
+    
+    .quality-spam {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+    }
+    
+    .action-button {
+      padding: 8px;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      border: none;
+      cursor: pointer;
+    }
+    
+    .action-button:hover {
+      transform: scale(1.1);
+    }
+    
+    .trend-bar {
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      border-radius: 4px;
+      transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .glass-effect {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    @media (max-width: 768px) {
+      .dashboard-container {
+        padding: 1rem;
       }
-      .chatbot-container::before { content: none !important; }
+      
+      .header-section {
+        padding: 1.5rem;
+      }
     }
   </style>
 </head>
-<body class="min-h-screen flex items-center justify-center">
-  <div class="chatbot-container flex flex-col items-center">
-    <button class="mb-6 px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition" onclick="window.location.href='index.html'">Back To Chat</button>
+<body class="min-h-screen">
+  <div class="dashboard-container">
+    <div class="header-section">
+      <div class="flex items-center justify-between mb-6">
+        <h1 class="text-3xl font-bold text-white">Conversation Dashboard</h1>
+        <button class="back-button" onclick="window.location.href='index.html'">
+          ← Back To Chat
+        </button>
+      </div>
+      <p class="text-white/80 text-lg">Monitor and analyze your customer conversations in real-time</p>
+    </div>
+    
     <div id="conversation-list" class="w-full"></div>
     <div id="messages-container" class="w-full" style="display:none;"></div>
   </div>
