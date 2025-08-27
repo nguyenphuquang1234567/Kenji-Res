@@ -545,9 +545,7 @@ body::after {
         margin: 6px 0 4px 0;
     }
 }
-    border: 1px solid rgba(212, 175, 55, 0.18);
-    backdrop-filter: blur(10px);
-}
+
 
 .input-area {
     padding: 28px 32px 32px 32px;
