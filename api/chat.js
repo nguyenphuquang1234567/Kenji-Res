@@ -44,36 +44,24 @@ Return only a valid JSON object, with no extra commentary.`;
 const DEFAULT_SYSTEM_PROMPT = `You are Kenji Assistant — the friendly, concise virtual host of Kenji Shop, a contemporary Japanese restaurant.
 
 GOAL
-- Keep replies warm, respectful, and to-the-point (prefer 1–3 short sentences). Use the same language as the user. Ask only one question at a time.
+- prefer 1–3 short sentences. Use the same language as the user. Ask only one question at a time.
 
-HOUSE INFO
-- Brand: Kenji Shop (Contemporary Japanese dining)
-- Address: 123 Nguyen Hue, District 1, Ho Chi Minh City
-- Hotline: 1900 1234
-- Currency: Show prices in USD with a leading $ (e.g., $12.90)
-
-MENU REFERENCE (use exactly when asked about items/prices)
-- Wagyu Steak — $68.90
-- Salmon Teriyaki — $32.90
-- Uni Truffle Udon — $34.90
-- Seaweed Salad — $14.90
-- Matcha Tiramisu — $12.90
-- Tonkotsu Ramen — $21.90
-- Chicken Karaage — $17.90
-- Mochi Ice Cream — $11.90
-- Featured/Omakase: If asked, explain it's the chef's curated selection.
+KNOWLEDGE
+- When the user asks about house details (brand, address, hotline, currency), call the tool get_house_info.
+- When the user asks about menu items or prices, call the tool get_menu_reference.
+- If the user wants to see a specific dish image or learn more visually, call show_food_image.
+- Do not invent data. Prefer tools over memory for facts.
 
 Conversation flow:
-- 1. First, ask if the user want to order something from the menu. If they mention a dish from the menu, go to step 4. If not, go to step 2.
-- 2. Then, list all the dishes from the MENU REFERENCE, just include the dish name, and ask if the user like to know more about the dish or order it.
-- 3. After that, if user want to know more about a specific dish, use the tool show_food_image.
-- 4. If the user confirm the dishes, do not use the tool show_food_image, just confirm the user's dishes. Next, ask for the customer's name -> email -> phone number -> address. Ask the user one by one.
-- 5. Next, ask them for date, time and their timezone,  and confirmed the delivery time.
-- 6. Finally, ask if they have any notes or questions before ending the chat.
-- 7. If the user has any notes or questions, ask them to send it to the email address: kenji.shop@gmail.com.
+- 1. First, ask if the user wants to order something from the menu. If they mention a dish, proceed to step 4; else go to step 2.
+- 2. If they want menu details, use get_menu_reference. List ONLY dish names (no price/description) unless explicitly asked.
+- 3. If they want to see a specific dish, use show_food_image.
+- 4. If the user confirms dishes, do not call show_food_image. Confirm items, then ask for customer's name → email → phone → address (one by one).
+- 5. Ask for date, time, and timezone, then confirm delivery time.
+- 6. Ask if they have any notes or questions. For inquiries, they can email: kenji.shop@gmail.com.
 
 TONE
-- use bullets sparingly when listing options.`;
+- Use bullets sparingly when listing options.`;
 
 const conversations = {};
 
@@ -317,6 +305,22 @@ module.exports = async (req, res) => {
                 required: ['dish_name']
               }
             }
+          },
+          {
+            type: 'function',
+            function: {
+              name: 'get_house_info',
+              description: 'Fetch brand, address, hotline, and currency from the database',
+              parameters: { type: 'object', properties: {}, additionalProperties: false }
+            }
+          },
+          {
+            type: 'function',
+            function: {
+              name: 'get_menu_reference',
+              description: 'Fetch current menu items with descriptions, prices (USD), and images from the database',
+              parameters: { type: 'object', properties: {}, additionalProperties: false }
+            }
           }
         ],
         tool_choice: 'auto'
@@ -383,6 +387,34 @@ module.exports = async (req, res) => {
               })
             });
           }
+        } else if (toolCall.function.name === 'get_house_info') {
+          // Load house info from Supabase
+          const { data, error } = await supabase
+            .from('house_info_json')
+            .select('info')
+            .single();
+          const info = (data && data.info) || {};
+          toolResultsForResponse.push({ type: 'house_info', info });
+          conversations[sessionId].push({
+            role: 'tool',
+            tool_call_id: toolCall.id,
+            name: 'get_house_info',
+            content: JSON.stringify(info)
+          });
+        } else if (toolCall.function.name === 'get_menu_reference') {
+          // Load menu items from Supabase
+          const { data, error } = await supabase
+            .from('menu_items')
+            .select('name, description, price_usd, image_path')
+            .order('name', { ascending: true });
+          const items = Array.isArray(data) ? data : [];
+          toolResultsForResponse.push({ type: 'menu_reference', items });
+          conversations[sessionId].push({
+            role: 'tool',
+            tool_call_id: toolCall.id,
+            name: 'get_menu_reference',
+            content: JSON.stringify(items)
+          });
         }
       }
     }
@@ -398,6 +430,33 @@ module.exports = async (req, res) => {
       ], { onConflict: ['conversation_id'] });
     } catch (dbError) {
       console.error('Supabase DB error:', dbError.message);
+    }
+
+    // If there were any tool calls, let the model do a brief second turn to compose the final reply
+    if (Array.isArray(toolCalls) && toolCalls.length > 0) {
+      const secondTurnMessages = sanitizeMessages(conversations[sessionId]);
+      try {
+        const second = await axios.post(
+          'https://api.openai.com/v1/chat/completions',
+          {
+            model: 'gpt-5-nano',
+            messages: secondTurnMessages
+          },
+          {
+            headers: {
+              'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+        const composed = second.data.choices[0]?.message?.content;
+        if (composed && composed.trim()) {
+          aiMessage = composed;
+          conversations[sessionId].push({ role: 'assistant', content: aiMessage });
+        }
+      } catch (e) {
+        // fall back silently
+      }
     }
 
     // Analyze conversation directly and wait for completion before responding
