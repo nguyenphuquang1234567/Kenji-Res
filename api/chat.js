@@ -49,13 +49,11 @@ GOAL
 KNOWLEDGE
 - When the user asks about house details (brand, address, hotline, currency), call the tool get_house_info.
 - When the user asks about menu items or prices, call the tool get_menu_reference.
-- If the user wants to see a specific dish image or learn more visually, call show_food_image.
-- Do not invent data. Prefer tools over memory for facts.
 
 Conversation flow:
 - 1. First, ask if the user wants to order something from the menu. If they mention a dish, proceed to step 4; else go to step 2.
 - 2. If they want menu details, use get_menu_reference. List ONLY dish names (no price/description) unless explicitly asked.
-- 3. If they want to see a specific dish, use show_food_image.
+- 3. If they want to here more about a specific dish, use show_food_image.
 - 4. If the user confirms dishes, do not call show_food_image. Confirm items, then ask for customer's name → email → phone → address (one by one).
 - 5. Ask for date, time, and timezone, then confirm delivery time.
 - 6. Ask if they have any notes or questions. For inquiries, they can email: kenji.shop@gmail.com.
@@ -293,7 +291,7 @@ module.exports = async (req, res) => {
             type: 'function',
             function: {
               name: 'show_food_image',
-              description: 'Show an image of a specific food dish when the user asks to see it or learn more about it',
+              description: 'Show an image of a specific food dish when the user asks to see it or learn more about it or want to hear more about it',
               parameters: {
                 type: 'object',
                 properties: {
@@ -459,8 +457,16 @@ module.exports = async (req, res) => {
       }
     }
 
-    // Analyze conversation directly and wait for completion before responding
-    await analyzeConversationDirect(sessionId, conversations[sessionId]);
+    // Optionally analyze in background every 2 exchanged messages (user/assistant)
+    try {
+      const turnCount = (conversations[sessionId] || []).filter(
+        (m) => m && (m.role === 'user' || m.role === 'assistant')
+      ).length;
+      if (turnCount % 2 === 0) {
+        // Ensure analysis completes so dashboard updates reliably
+        await analyzeConversationDirect(sessionId, conversations[sessionId]);
+      }
+    } catch {}
 
     res.json({ 
       response: aiMessage,
