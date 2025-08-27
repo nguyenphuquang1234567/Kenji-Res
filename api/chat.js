@@ -54,7 +54,7 @@ Conversation flow:
 - 1. First, ask if the user wants to order something from the menu. If they mention a dish, proceed to step 4; else go to step 2.
 - 2. If they want menu details, use get_menu_reference. List ONLY dish names (no price/description) unless explicitly asked.
 - 3. If they want to here more about a specific dish, use show_food_image.
-- 4. If the user confirms dishes, do not call show_food_image. Confirm items, then ask for customer's name → email → phone → address (one by one).
+- 4. If the user confirms dishes, do not call show_food_image. Politely ask for customer's name → email → phone → address (one by one).
 - 5. Ask for date, time, and timezone, then confirm delivery time.
 - 6. Ask if they have any notes or questions. For inquiries, they can email: kenji.shop@gmail.com.
 
@@ -457,15 +457,10 @@ module.exports = async (req, res) => {
       }
     }
 
-    // Optionally analyze in background every 2 exchanged messages (user/assistant)
+    // Analyze conversation after each message exchange
     try {
-      const turnCount = (conversations[sessionId] || []).filter(
-        (m) => m && (m.role === 'user' || m.role === 'assistant')
-      ).length;
-      if (turnCount % 2 === 0) {
-        // Ensure analysis completes so dashboard updates reliably
-        await analyzeConversationDirect(sessionId, conversations[sessionId]);
-      }
+      // Ensure analysis completes so dashboard updates reliably
+      await analyzeConversationDirect(sessionId, conversations[sessionId]);
     } catch {}
 
     res.json({ 
