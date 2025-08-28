@@ -362,42 +362,48 @@ document.addEventListener('DOMContentLoaded', () => {
           <!-- Conversations Trend -->
           <div class="bg-blue-50 rounded-lg p-3 overflow-hidden">
             <div class="text-sm text-blue-600 font-medium mb-2">Conversations</div>
-            <div class="trend-bars-row flex items-end gap-1 h-24">
-              ${dailyData.map(day => {
-                const height = clampPct(maxConversations > 0 ? (day.conversations / maxConversations) * 100 : 0);
-                return `<div class=\"flex-1 bg-blue-500 rounded-t transition-all duration-300\" style=\"height: ${height}%\"></div>`;
-              }).join('')}
-            </div>
-            <div class="trend-labels">
-              ${dailyData.map(day => `<span class=\"truncate\">${day.date}</span>`).join('')}
+            <div class="trend-scroll">
+              <div class="trend-bars-row trend-track-width flex items-end gap-1 h-24">
+                ${dailyData.map(day => {
+                  const height = clampPct(maxConversations > 0 ? (day.conversations / maxConversations) * 100 : 0);
+                  return `<div class=\"flex-1 bg-blue-500 rounded-t transition-all duration-300\" style=\"height: ${height}%\"></div>`;
+                }).join('')}
+              </div>
+              <div class="trend-labels trend-track-width">
+                ${dailyData.map(day => `<span class=\"truncate\">${day.date}</span>`).join('')}
+              </div>
             </div>
           </div>
 
           <!-- Orders Trend -->
           <div class="bg-green-50 rounded-lg p-3 overflow-hidden">
             <div class="text-sm text-green-600 font-medium mb-2">Orders</div>
-            <div class="trend-bars-row flex items-end gap-1 h-24">
-              ${dailyData.map(day => {
-                const height = clampPct(maxOrders > 0 ? (day.orders / maxOrders) * 100 : 0);
-                return `<div class=\"flex-1 bg-green-500 rounded-t transition-all duration-300\" style=\"height: ${height}%\"></div>`;
-              }).join('')}
-            </div>
-            <div class="trend-labels">
-              ${dailyData.map(day => `<span class=\"truncate\">${day.date}</span>`).join('')}
+            <div class="trend-scroll">
+              <div class="trend-bars-row trend-track-width flex items-end gap-1 h-24">
+                ${dailyData.map(day => {
+                  const height = clampPct(maxOrders > 0 ? (day.orders / maxOrders) * 100 : 0);
+                  return `<div class=\"flex-1 bg-green-500 rounded-t transition-all duration-300\" style=\"height: ${height}%\"></div>`;
+                }).join('')}
+              </div>
+              <div class="trend-labels trend-track-width">
+                ${dailyData.map(day => `<span class=\"truncate\">${day.date}</span>`).join('')}
+              </div>
             </div>
           </div>
 
           <!-- Conversion Rate Trend -->
           <div class="bg-purple-50 rounded-lg p-3 overflow-hidden">
             <div class="text-sm text-purple-600 font-medium mb-2">Conversion %</div>
-            <div class="trend-bars-row flex items-end gap-1 h-24">
-              ${dailyData.map(day => {
-                const height = clampPct(maxConversion > 0 ? (day.conversionRate / maxConversion) * 100 : 0);
-                return `<div class=\"flex-1 bg-purple-500 rounded-t transition-all duration-300\" style=\"height: ${height}%\"></div>`;
-              }).join('')}
-            </div>
-            <div class="trend-labels">
-              ${dailyData.map(day => `<span class=\"truncate\">${day.date}</span>`).join('')}
+            <div class="trend-scroll">
+              <div class="trend-bars-row trend-track-width flex items-end gap-1 h-24">
+                ${dailyData.map(day => {
+                  const height = clampPct(maxConversion > 0 ? (day.conversionRate / maxConversion) * 100 : 0);
+                  return `<div class=\"flex-1 bg-purple-500 rounded-t transition-all duration-300\" style=\"height: ${height}%\"></div>`;
+                }).join('')}
+              </div>
+              <div class="trend-labels trend-track-width">
+                ${dailyData.map(day => `<span class=\"truncate\">${day.date}</span>`).join('')}
+              </div>
             </div>
           </div>
         </div>
