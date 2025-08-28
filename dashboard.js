@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="trend-bar h-full transition-all duration-1000 ease-out" 
                  style="width: ${conversionRate}%"></div>
           </div>
-          <div class="flex justify-between text-xs text-gray-500 mt-2">
+          <div class="conv-progress-labels mt-2">
             <span>0%</span>
             <span>25%</span>
             <span>50%</span>
@@ -366,8 +366,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 return `<div class="flex-1 bg-blue-500 rounded-t transition-all duration-300" style="height: ${height}%"></div>`;
               }).join('')}
             </div>
-            <div class="flex justify-between text-xs text-gray-500 mt-1">
-              ${dailyData.map(day => `<span>${day.date}</span>`).join('')}
+            <div class="trend-labels">
+              ${dailyData.map(day => `<span class=\"truncate\">${day.date}</span>`).join('')}
             </div>
           </div>
 
@@ -380,8 +380,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 return `<div class="flex-1 bg-green-500 rounded-t transition-all duration-300" style="height: ${height}%"></div>`;
               }).join('')}
             </div>
-            <div class="flex justify-between text-xs text-gray-500 mt-1">
-              ${dailyData.map(day => `<span>${day.date}</span>`).join('')}
+            <div class="trend-labels">
+              ${dailyData.map(day => `<span class=\"truncate\">${day.date}</span>`).join('')}
             </div>
           </div>
 
@@ -394,8 +394,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 return `<div class="flex-1 bg-purple-500 rounded-t transition-all duration-300" style="height: ${height}%"></div>`;
               }).join('')}
             </div>
-            <div class="flex justify-between text-xs text-gray-500 mt-1">
-              ${dailyData.map(day => `<span>${day.date}</span>`).join('')}
+            <div class="trend-labels">
+              ${dailyData.map(day => `<span class=\"truncate\">${day.date}</span>`).join('')}
             </div>
           </div>
         </div>
