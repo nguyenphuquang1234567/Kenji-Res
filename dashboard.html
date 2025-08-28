@@ -131,7 +131,7 @@
     .trend-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
     .trend-track-width { min-width: 560px; }
     
-    /* Responsive labels for 7-day trend */
+    /* Responsive labels for 7-day trend - centered under bars */
     .trend-labels {
       display: grid;
       grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -139,7 +139,9 @@
       margin-top: 4px;
       font-size: 0.75rem;
       color: #6b7280;
+      text-align: center;
     }
+    .trend-labels span { display: block; white-space: nowrap; }
     
     /* Keep Conversion Progress labels on one row */
     .conv-progress-labels {
@@ -157,17 +159,7 @@
       }
     }
     @media (max-width: 520px) {
-      .trend-labels {
-        display: flex;
-        overflow-x: auto;
-        gap: 8px;
-        -webkit-overflow-scrolling: touch;
-      }
-      .trend-labels span {
-        min-width: 56px;
-        display: inline-block;
-        white-space: nowrap;
-      }
+      .trend-labels { grid-template-columns: repeat(7, minmax(56px, 1fr)); }
     }
     
     .glass-effect {
