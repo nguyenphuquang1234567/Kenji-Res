@@ -216,6 +216,10 @@
       .dashboard-container {
         padding: 0.5rem;
       }
+      body {
+        background-position: center top !important;
+        background-attachment: scroll;
+      }
       
       .header-section {
         padding: 1rem;
@@ -253,6 +257,8 @@
         grid-template-columns: 1fr !important;
         gap: 0.75rem !important;
       }
+      /* Ensure 7-day trend bars stay horizontal on phones */
+      .trend-bars-row { flex-direction: row !important; }
       
       /* Responsive charts */
       .flex {

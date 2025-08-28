@@ -122,6 +122,7 @@
             inset: 0;
             background: linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0.4)),
                 url('https://images.unsplash.com/photo-1553621042-f6e147245754?q=80&w=1400&auto=format&fit=crop') center/cover no-repeat;
+            background-attachment: scroll;
         }
         .hero::after {
             content: '';
@@ -178,6 +179,7 @@
             background: 
                 linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.45)),
                 url('images/kenjishop.png') center/cover no-repeat; 
+            background-attachment: scroll;
         }
         #menu.section h2 {
             background: none;
@@ -243,6 +245,7 @@
             border-top: 1px solid var(--line);
             border-bottom: 1px solid var(--line);
             position: relative;
+            background-attachment: scroll;
         }
         .about::before {
             content: '';
@@ -329,6 +332,10 @@
             .dish img { height: 190px; }
             .filter-bar { flex-wrap: wrap; gap: 8px; }
             .site-footer .row { flex-direction: column; text-align: center; }
+            /* Mobile background adjustments for better focal point */
+            .hero::before { background-position: center top; }
+            #menu.section { background-position: center top !important; }
+            .about { background-position: center top !important; }
         }
         @media (max-width: 480px) {
             .dish img { height: 160px; }
