@@ -349,21 +349,23 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     });
 
-    const maxConversations = Math.max(...dailyData.map(d => d.conversations));
-    const maxOrders = Math.max(...dailyData.map(d => d.orders));
-    const maxConversion = Math.max(...dailyData.map(d => d.conversionRate));
+    const maxConversations = Math.max(0, ...dailyData.map(d => d.conversations));
+    const maxOrders = Math.max(0, ...dailyData.map(d => d.orders));
+    const maxConversion = Math.max(0, ...dailyData.map(d => d.conversionRate));
+
+    const clampPct = (n) => Math.max(0, Math.min(100, n));
 
     container.innerHTML = `
       <div class="rounded-xl border bg-white p-4">
         <div class="text-lg font-semibold mb-4 text-gray-800 text-center">7-Day Trend</div>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
           <!-- Conversations Trend -->
-          <div class="bg-blue-50 rounded-lg p-3">
+          <div class="bg-blue-50 rounded-lg p-3 overflow-hidden">
             <div class="text-sm text-blue-600 font-medium mb-2">Conversations</div>
-            <div class="flex items-end gap-1 h-16">
+            <div class="flex items-end gap-1 h-24">
               ${dailyData.map(day => {
-                const height = maxConversations > 0 ? (day.conversations / maxConversations) * 100 : 0;
-                return `<div class="flex-1 bg-blue-500 rounded-t transition-all duration-300" style="height: ${height}%"></div>`;
+                const height = clampPct(maxConversations > 0 ? (day.conversations / maxConversations) * 100 : 0);
+                return `<div class=\"flex-1 bg-blue-500 rounded-t transition-all duration-300\" style=\"height: ${height}%\"></div>`;
               }).join('')}
             </div>
             <div class="trend-labels">
@@ -372,12 +374,12 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
 
           <!-- Orders Trend -->
-          <div class="bg-green-50 rounded-lg p-3">
+          <div class="bg-green-50 rounded-lg p-3 overflow-hidden">
             <div class="text-sm text-green-600 font-medium mb-2">Orders</div>
-            <div class="flex items-end gap-1 h-16">
+            <div class="flex items-end gap-1 h-24">
               ${dailyData.map(day => {
-                const height = maxOrders > 0 ? (day.orders / maxOrders) * 100 : 0;
-                return `<div class="flex-1 bg-green-500 rounded-t transition-all duration-300" style="height: ${height}%"></div>`;
+                const height = clampPct(maxOrders > 0 ? (day.orders / maxOrders) * 100 : 0);
+                return `<div class=\"flex-1 bg-green-500 rounded-t transition-all duration-300\" style=\"height: ${height}%\"></div>`;
               }).join('')}
             </div>
             <div class="trend-labels">
@@ -386,12 +388,12 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
 
           <!-- Conversion Rate Trend -->
-          <div class="bg-purple-50 rounded-lg p-3">
+          <div class="bg-purple-50 rounded-lg p-3 overflow-hidden">
             <div class="text-sm text-purple-600 font-medium mb-2">Conversion %</div>
-            <div class="flex items-end gap-1 h-16">
+            <div class="flex items-end gap-1 h-24">
               ${dailyData.map(day => {
-                const height = maxConversion > 0 ? (day.conversionRate / maxConversion) * 100 : 0;
-                return `<div class="flex-1 bg-purple-500 rounded-t transition-all duration-300" style="height: ${height}%"></div>`;
+                const height = clampPct(maxConversion > 0 ? (day.conversionRate / maxConversion) * 100 : 0);
+                return `<div class=\"flex-1 bg-purple-500 rounded-t transition-all duration-300\" style=\"height: ${height}%\"></div>`;
               }).join('')}
             </div>
             <div class="trend-labels">
@@ -400,6 +402,18 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>
       </div>`;
+
+    // Show fallback when no values at all
+    const totalValues = dailyData.reduce((sum, d) => sum + d.conversations + d.orders + d.conversionRate, 0);
+    if (totalValues === 0) {
+      container.querySelectorAll('.bg-blue-50, .bg-green-50, .bg-purple-50').forEach(box => {
+        if (!box) return;
+        const msg = document.createElement('div');
+        msg.className = 'text-center text-sm text-gray-600 py-6';
+        msg.textContent = 'No data for the past 7 days.';
+        box.appendChild(msg);
+      });
+    }
 
     parentEl.appendChild(container);
   }

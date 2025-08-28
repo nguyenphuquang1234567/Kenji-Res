@@ -31,6 +31,9 @@
         body::before,
         body::after { content: none !important; }
 
+        /* Native smooth scrolling */
+        html { scroll-behavior: smooth; }
+
         .container {
             width: min(1200px, 92%);
             margin: 0 auto;
@@ -142,7 +145,15 @@
         .hero .btn-primary { margin-right: 10px; }
 
         /* Sections */
-        .section { padding: 64px 0; }
+        .section { padding: 64px 0; position: relative; scroll-margin-top: 80px; }
+        /* Stronger fades at top and bottom to smooth section boundaries */
+        .section::before,
+        .section::after {
+            content: '';
+            position: absolute; left: 0; right: 0; pointer-events: none; z-index: 2;
+        }
+        .section::before { top: 0; height: 120px; background: linear-gradient(180deg, rgba(0,0,0,0.85), rgba(0,0,0,0)); }
+        .section::after  { bottom: 0; height: 120px; background: linear-gradient(0deg, rgba(0,0,0,0.85), rgba(0,0,0,0)); }
         .section h2 {
             font-family: 'Playfair Display', serif;
             font-size: 36px;
@@ -166,7 +177,7 @@
             position: relative; 
             background: 
                 linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.45)),
-                url('images/background.png') center/cover no-repeat; 
+                url('images/kenjishop.png') center/cover no-repeat; 
         }
         #menu.section h2 {
             background: none;
@@ -226,7 +237,9 @@
 
         /* About */
         .about {
-            background: #0e0e10;
+            background:
+                linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0.55)),
+                url('images/background.png') center/cover no-repeat;
             border-top: 1px solid var(--line);
             border-bottom: 1px solid var(--line);
             position: relative;
@@ -241,7 +254,7 @@
         .about .content { max-width: 800px; margin: 0 auto; text-align: center; position: relative; }
 
         /* Reveal on scroll */
-        .reveal { opacity: 0; transform: translateY(16px); transition: opacity .6s ease, transform .6s ease; }
+        .reveal { opacity: 0; transform: translateY(16px); transition: opacity .8s cubic-bezier(0.16, 1, 0.3, 1), transform .8s cubic-bezier(0.16, 1, 0.3, 1); }
         .reveal.in-view { opacity: 1; transform: translateY(0); }
 
         /* Sakura petals */
