@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     container.innerHTML = `
       <div class="stats-card">
         <div class="text-xl font-semibold mb-6 text-gray-800 text-center">Conversion Analytics</div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           <!-- Conversion Rate -->
           <div class="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200">
             <div class="text-3xl font-bold text-blue-700 mb-2">${conversionRate}%</div>
@@ -128,26 +128,26 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="stats-card">
         <div class="text-xl font-semibold mb-4 text-gray-800 text-center">Lead Quality Distribution</div>
         <div id="lq-bars" class="flex flex-col gap-3 mb-4">
-          <div class="flex items-center gap-4">
-            <div class="w-20 text-sm font-medium text-green-700">Good</div>
-            <div class="flex-1 h-5 rounded-full bg-gray-100 overflow-hidden border border-gray-200">
+          <div class="flex items-center gap-2 sm:gap-4">
+            <div class="w-12 sm:w-20 text-xs sm:text-sm font-medium text-green-700">Good</div>
+            <div class="flex-1 h-4 sm:h-5 rounded-full bg-gray-100 overflow-hidden border border-gray-200">
               <div data-quality="good" class="h-full bg-green-500 cursor-pointer transition-all duration-300" style="width:${goodPct}%"></div>
             </div>
-            <div class="w-20 text-right text-sm text-gray-600 font-medium">${goodPct}% (${counts.good})</div>
+            <div class="w-12 sm:w-20 text-right text-xs sm:text-sm text-gray-600 font-medium">${goodPct}% (${counts.good})</div>
           </div>
-          <div class="flex items-center gap-4">
-            <div class="w-20 text-sm font-medium text-yellow-700">OK</div>
-            <div class="flex-1 h-5 rounded-full bg-gray-100 overflow-hidden border border-gray-200">
+          <div class="flex items-center gap-2 sm:gap-4">
+            <div class="w-12 sm:w-20 text-xs sm:text-sm font-medium text-yellow-700">OK</div>
+            <div class="flex-1 h-4 sm:h-5 rounded-full bg-gray-100 overflow-hidden border border-gray-200">
               <div data-quality="ok" class="h-full bg-yellow-400 cursor-pointer transition-all duration-300" style="width:${okPct}%"></div>
             </div>
-            <div class="w-20 text-right text-sm text-gray-600 font-medium">${okPct}% (${counts.ok})</div>
+            <div class="w-12 sm:w-20 text-right text-xs sm:text-sm text-gray-600 font-medium">${okPct}% (${counts.ok})</div>
           </div>
-          <div class="flex items-center gap-4">
-            <div class="w-20 text-sm font-medium text-red-700">Spam</div>
-            <div class="flex-1 h-5 rounded-full bg-gray-100 overflow-hidden border border-gray-200">
+          <div class="flex items-center gap-2 sm:gap-4">
+            <div class="w-12 sm:w-20 text-xs sm:text-sm font-medium text-red-700">Spam</div>
+            <div class="flex-1 h-4 sm:h-5 rounded-full bg-gray-100 overflow-hidden border border-gray-200">
               <div data-quality="spam" class="h-full bg-red-500 cursor-pointer transition-all duration-300" style="width:${spamPct}%"></div>
             </div>
-            <div class="w-20 text-right text-sm text-gray-600 font-medium">${spamPct}% (${counts.spam})</div>
+            <div class="w-12 sm:w-20 text-right text-xs sm:text-sm text-gray-600 font-medium">${spamPct}% (${counts.spam})</div>
           </div>
         </div>
         <div class="flex flex-wrap items-center justify-center gap-3" id="lq-cards">
@@ -289,7 +289,7 @@ document.addEventListener('DOMContentLoaded', () => {
       row.className = 'flex items-center gap-4';
 
       const label = document.createElement('div');
-      label.className = 'w-56 shrink-0 text-sm text-gray-800 flex items-center gap-2';
+      label.className = 'w-32 sm:w-40 md:w-56 shrink-0 text-sm text-gray-800 flex items-center gap-2';
       label.innerHTML = `<img src="${img}" alt="${name}" class="w-6 h-6 rounded object-cover border border-gray-200" /><span>${name}</span>`;
 
       const barTrack = document.createElement('div');
@@ -356,7 +356,7 @@ document.addEventListener('DOMContentLoaded', () => {
     container.innerHTML = `
       <div class="rounded-xl border bg-white p-4">
         <div class="text-lg font-semibold mb-4 text-gray-800 text-center">7-Day Trend</div>
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
           <!-- Conversations Trend -->
           <div class="bg-blue-50 rounded-lg p-3">
             <div class="text-sm text-blue-600 font-medium mb-2">Conversations</div>
@@ -463,7 +463,7 @@ document.addEventListener('DOMContentLoaded', () => {
     container.innerHTML = `
       <div class="rounded-xl border bg-white p-4">
         <div class="text-lg font-semibold mb-4 text-gray-800 text-center">This Week vs Last Week</div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <!-- Conversations -->
           <div class="bg-blue-50 rounded-lg p-4 text-center">
             <div class="text-sm text-blue-600 font-medium mb-2">Conversations</div>
@@ -505,11 +505,11 @@ document.addEventListener('DOMContentLoaded', () => {
     list.className = 'flex flex-col gap-2';
     items.forEach(conv => {
       const item = document.createElement('div');
-      item.className = 'conversation-item flex items-center justify-between w-full';
+      item.className = 'conversation-item flex items-center justify-between w-full flex-wrap';
       
       // Left side with conversation info
       const leftSide = document.createElement('div');
-      leftSide.className = 'flex-1';
+      leftSide.className = 'flex-1 min-w-0';
       
       const infoBtn = document.createElement('button');
       infoBtn.className = 'text-left w-full';
@@ -541,7 +541,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Right side with action buttons
       const rightSide = document.createElement('div');
-      rightSide.className = 'flex items-center gap-2';
+      rightSide.className = 'flex items-center gap-2 flex-shrink-0';
       
       // Analyze button
       const analyzeBtn = document.createElement('button');
@@ -758,7 +758,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Analysis grid
     const grid = document.createElement('div');
-    grid.className = 'grid grid-cols-1 md:grid-cols-2 gap-6';
+    grid.className = 'grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6';
 
     const analysisFields = [
       { key: 'customer_name', label: 'Customer Name', icon: '👤' },
